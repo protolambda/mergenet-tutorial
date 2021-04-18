@@ -1,0 +1,6 @@
+# a 24 word BIP 39 mnemonic
+- mnemonic: "lumber kind orange gold firm achieve tree robust peasant april very word ordinary before treat way ivory jazz cereal debate juice evil flame sadness"
+  count: 64  # 64 for minimal config, 16384 for mainnet config
+# more tranches can be specified for multi-user setup,
+# see https://github.com/protolambda/eth2-testnet-genesis README
+

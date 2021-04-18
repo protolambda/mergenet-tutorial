@@ -1,0 +1,13 @@
+mnemonic: "enforce patient ridge volume question system myself moon world glass later hello tissue east chair suspect remember check chicken bargain club exit pilot sand"
+eth1_premine:
+  "m/44'/60'/0'/0/0": 10000000ETH
+  "m/44'/60'/0'/0/1": 10000000ETH
+  "m/44'/60'/0'/0/2": 10000000ETH
+chain_id: 700
+deposit_contract_address: "0x4242424242424242424242424242424242424242"
+# either 'minimal' or 'mainnet'
+eth2_base_config: minimal
+eth2_fork_version: "0x00000700"
+eth1_genesis_timestamp: 1618840800
+# Tweak this. actual_genesis_timestamp = eth1_genesis_timestamp + eth2_genesis_delay
+eth2_genesis_delay: 180
