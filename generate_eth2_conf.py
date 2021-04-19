@@ -155,4 +155,16 @@ DOMAIN_DEPOSIT: 0x03000000
 DOMAIN_VOLUNTARY_EXIT: 0x04000000
 DOMAIN_SELECTION_PROOF: 0x05000000
 DOMAIN_AGGREGATE_AND_PROOF: 0x06000000
+
+
+# Merge
+# ---------------------------------------------------------------
+# Same fork version as genesis, since there is no actual fork
+MERGE_FORK_VERSION: "{data['eth2_fork_version']}"
+# Merge active from genesis
+MERGE_FORK_SLOT: 0
+
+# Transition
+# ---------------------------------------------------------------
+TRANSITION_TOTAL_DIFFICULTY: 0
 """)
