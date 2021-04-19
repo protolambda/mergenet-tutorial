@@ -4,3 +4,4 @@ clients
 nodes
 # in each testnet dir, the 'private' dir holds the validator keys etc.
 private
+mynetwork

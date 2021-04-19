@@ -10,4 +10,4 @@ eth2_base_config: minimal
 eth2_fork_version: "0x00000700"
 eth1_genesis_timestamp: 1618840800
 # Tweak this. actual_genesis_timestamp = eth1_genesis_timestamp + eth2_genesis_delay
-eth2_genesis_delay: 180
+eth2_genesis_delay: 600

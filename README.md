@@ -18,9 +18,15 @@ go install github.com/protolambda/eth2-testnet-genesis@latest
 go install github.com/protolambda/eth2-val-tools@latest
 ```
 
+## Create chain configurations
+
 Tweak `mergenet.yaml` as you like.
 
-## Create chain configurations
+Get current timestamp as eth1 genesis timestamp, then change the eth2-genesis delay to offset the chain start:
+```shell
+date +%s
+```
+
 ```shell
 # Create output
 export TESTNET_NAME="mynetwork"
@@ -119,7 +125,7 @@ Run (omit the `--validator-keys` if you prefer the stand-alone Teku validator-cl
 mkdir -p "./$TESTNET_NAME/nodes/teku0/beacondata"
 ./clients/teku/build/install/teku/bin/teku \
   --network "./$TESTNET_NAME/public/eth2_config.yaml" \
-  --data-path "./$TESTNET_NAME/nodes/teku0/beacondata"
+  --data-path "./$TESTNET_NAME/nodes/teku0/beacondata" \
   --p2p-enabled=false \
   --initial-state "./$TESTNET_NAME/public/genesis.ssz" \
   --eth1-endpoint http://127.0.0.1:8545 \
@@ -132,7 +138,7 @@ mkdir -p "./$TESTNET_NAME/nodes/teku0/beacondata"
   --rest-api-interface=127.0.0.1 \
   --rest-api-port=5051 \
   --Xdata-storage-non-canonical-blocks-enabled=true \
-  --validator-keys "./$TESTNET_NAME/private/$VALIDATOR_NODE_NAME/teku-keys:./$TESTNET_NAME/private/$VALIDATOR_NODE_NAME/teku-secrets
+  --validator-keys "./$TESTNET_NAME/private/$VALIDATOR_NODE_NAME/teku-keys:./$TESTNET_NAME/private/$VALIDATOR_NODE_NAME/teku-secrets"
 ```
 
 Note:

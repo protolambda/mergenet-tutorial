@@ -43,8 +43,7 @@ minimal = {
 
 config = minimal if data['eth2_base_config'] == 'minimal' else mainnet
 
-f"""
-# Merge devnet preset
+print(f"""# Merge devnet preset
 
 # TODO some clients need either the mainnet/minimal name for base config values (Lighthouse/Nimbus?)
 CONFIG_NAME: "{config['CONFIG_NAME']}"
@@ -156,4 +155,4 @@ DOMAIN_DEPOSIT: 0x03000000
 DOMAIN_VOLUNTARY_EXIT: 0x04000000
 DOMAIN_SELECTION_PROOF: 0x05000000
 DOMAIN_AGGREGATE_AND_PROOF: 0x06000000
-"""
+""")
