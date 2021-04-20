@@ -1,6 +1,9 @@
-from web3.auto import w3
+from web3 import Web3
 import json
 import ruamel.yaml as yaml
+
+provider = Web3.HTTPProvider('http://localhost:8545')
+w3 = Web3(provider)
 
 w3.eth.account.enable_unaudited_hdwallet_features()
 
@@ -8,14 +11,14 @@ with open("mergenet.yaml") as stream:
     data = yaml.safe_load(stream)
 
 src_acct = w3.eth.account.from_mnemonic(
-    data['mnemonic'], account_path=data['eth1_premine'].keys()[0], passphrase='')
+    data['mnemonic'], account_path=list(data['eth1_premine'].keys())[0], passphrase='')
 
 dest_acct = w3.eth.account.from_mnemonic(
-    data['mnemonic'], account_path=data['eth1_premine'].keys()[1], passphrase='')
+    data['mnemonic'], account_path=list(data['eth1_premine'].keys())[1], passphrase='')
 
 transaction = {
     'to': dest_acct.address,
-    'value': 1 * 1e18,
+    'value': w3.toWei(1, 'ether'),
     'gas': 21000,
     'gasPrice': 4,
     'nonce': 0,
