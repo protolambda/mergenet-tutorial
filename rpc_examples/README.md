@@ -1,19 +1,16 @@
-# RPC Examples for Eth1 Nodes
+# JSON RPC Examples
 
-This directory contains scripts and examples of the RPC
-encoding for "Eth1" clients.
+This directory contains scripts and examples of the JSON RPC encoding for
+"execution" clients.
 
-The examples in this document were produced with Catalyst (Geth), however the scripts can be run against any implementation.
+The examples were generated using scripts also available in this directory.
+Whilst these examples were generated with Geth (Catalyst), they *should* be
+able to be run against any execution client.
 
-This information should help clients write unit tests and understand the RPC format.
+This information should help application and consensus clients write unit tests
+and understand the RPC format.
 
-## `consensus_assembleBlock`
-
-Generate this example yourself with:
-
-```bash
-./consensus_assembleBlock.sh
-```
+## Example: `consensus_assembleBlock`
 
 ### Request
 
@@ -53,13 +50,9 @@ Generate this example yourself with:
 }
 ```
 
-## `consensus_newBlock`
+> Generate this example yourself with `./consensus_assembleBlock.sh`
 
-Generate this example yourself with:
-
-```bash
-./consensus_newBlock.sh
-```
+## Example: `consensus_newBlock`
 
 ### Request
 
@@ -97,3 +90,5 @@ Generate this example yourself with:
   }
 }
 ```
+
+> Generate this example yourself with `./consensus_newBlock.sh`
