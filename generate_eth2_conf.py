@@ -99,7 +99,7 @@ EFFECTIVE_BALANCE_INCREMENT: 1000000000
 
 # Initial values
 # ---------------------------------------------------------------
-GENESIS_FORK_VERSION: "{data['eth2_fork_version']}"
+GENESIS_FORK_VERSION: {data['eth2_fork_version']}
 
 BLS_WITHDRAWAL_PREFIX: 0x00
 
@@ -160,7 +160,7 @@ DOMAIN_AGGREGATE_AND_PROOF: 0x06000000
 # Merge
 # ---------------------------------------------------------------
 # Same fork version as genesis, since there is no actual fork
-MERGE_FORK_VERSION: "{data['eth2_fork_version']}"
+MERGE_FORK_VERSION: {data['eth2_fork_version']}
 # Merge active from genesis
 MERGE_FORK_SLOT: 0
 
