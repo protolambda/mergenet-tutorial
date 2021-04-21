@@ -246,7 +246,7 @@ The instructions are effectively the same as the Lighthouse Beacon Node.
 ./lh_scripts/start_validator.sh docker
 ```
 
-**...OR.. Build from source**:
+**...OR... Build from source**:
 
 Follow steps 1, 2 in the Lighthouse Beacon Node, then run:
 
