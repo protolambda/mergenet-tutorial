@@ -227,7 +227,6 @@ mkdir -p "./$TESTNET_NAME/nodes/teku0/validatordata"
   --network "./$TESTNET_NAME/public/eth2_config.yaml" \
   --data-path "./$TESTNET_NAME/nodes/teku0/validatordata" \
   --beacon-node-api-endpoint "http://127.0.0.1:5051" \
---force-clear-db \
   --validator-keys "./$TESTNET_NAME/private/$VALIDATOR_NODE_NAME/teku-keys:./$TESTNET_NAME/private/$VALIDATOR_NODE_NAME/teku-secrets
 ```
 
