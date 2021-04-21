@@ -164,7 +164,7 @@ Required dependencies:
 Then, clone the repo and checkout the branch
 
 ```shell
-git clone -b merge https://github.com/prysmaticlabs/prysm.git clients/prysm
+git clone -b merge https://github.com/prysmaticlabs/prysm.git clients/prysm && cd clients/prysm
 ```
 
 Build the beacon node and validator
