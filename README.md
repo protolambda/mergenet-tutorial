@@ -120,7 +120,7 @@ sudo apt-get update && sudo apt-get install libsnappy-dev libc6-dev libc6 unzip
 brew install rocksdb
 ```
 
-Download newest (top green) package for your OS from 'rayonism' branch here: https://github.com/NethermindEth/nethermind/actions/workflows/build-nethermind-packages.yml?query=branch%3Arayonism 
+Download newest (top green) package for your OS from 'rayonism' branch [here](https://github.com/NethermindEth/nethermind/actions/workflows/build-nethermind-packages.yml?query=branch%3Arayonism)
 
 Note: *Temporary until rayonism is stable and in main release*
 
