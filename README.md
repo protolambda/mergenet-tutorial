@@ -212,6 +212,8 @@ bazel run //beacon-chain --define=ssz=minimal -- \
  --force-clear-db
 ```
 
+The bootstrap node option is empty to disable any type of networking.
+
 ### Start Eth2 validators
 
 #### Teku
