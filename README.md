@@ -106,10 +106,28 @@ Run:
 
 #### Nethermind
 
-Download newest (top green) package for your OS from 'rayonism' branch here: https://github.com/NethermindEth/nethermind/actions/workflows/build-nethermind-packages.yml?query=branch%3Arayonism Note: *Temporary until rayonism is stable and in main relese*
+Install prerequisites:
+
+1. linux/linux-arm64
+
+```shell
+sudo apt-get update && sudo apt-get install libsnappy-dev libc6-dev libc6 unzip
+```
+
+2. macOS
+
+```shell
+brew install rocksdb
+```
+
+Download newest (top green) package for your OS from 'rayonism' branch here: https://github.com/NethermindEth/nethermind/actions/workflows/build-nethermind-packages.yml?query=branch%3Arayonism 
+
+Note: *Temporary until rayonism is stable and in main release*
+
 Unzip the package to /clients/nethermind/
 
 Create Nethermind chain configuration.
+
 Note: *Both Geth-style chain configuration and Nethermind chain configurations is needed. Other general steps in this tutorial are dependent on Geth-style chain configuration.*
 
 ```shell
