@@ -1,7 +1,16 @@
+# Starts a Lighthouse Beacon Node using either:
+#
+# - A docker image: provide `docker` as the first argument.
+# - A local binary:: provide `binary` as the first argument.
+#
+# The docker and binary options will use different data directories
+# to avoid some permissions issues with docker using root.
+
 BINARY=binary
 DOCKER=docker
 DOCKER_IMAGE=sigp/lighthouse:rayonism
 
+# Ensure necessary env vars are present.
 if [ -z "$TESTNET_NAME" ]; then
     echo TESTNET_NAME is not set, exiting
     exit 1
@@ -17,6 +26,7 @@ COMMON_LH_PARAMS="--testnet-deposit-contract-deploy-block 0 \
     beacon_node \
     --staking"
 
+# Start Lighthouse using the binary available on $PATH.
 if [ $1 = $BINARY ]; then
     exec lighthouse \
         --datadir "$(pwd)/$TESTNET_NAME/nodes/lighthouse_binary" \
@@ -24,6 +34,7 @@ if [ $1 = $BINARY ]; then
     exit 0
 fi
 
+# Start Lighthouse using a docker image on Docker Hub.
 if [ $1 = $DOCKER ]; then
     docker pull $DOCKER_IMAGE &&
     exec docker \

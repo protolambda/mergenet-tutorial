@@ -186,7 +186,7 @@ There are two options:
 ./lh_scripts/start_beacon.sh docker
 ```
 
-**Build from source**:
+**...OR... Build from source**:
 
 1. Install deps:
 
@@ -237,13 +237,16 @@ Work in progress.
 
 The instructions are effectively the same as the Lighthouse Beacon Node.
 
+*Note: permissions issues may prevent switching between the `docker` and
+`binary` options. For maximal ease of use, pick an option and stick with it.*
+
 **Docker**:
 
 ```shell
 ./lh_scripts/start_validator.sh docker
 ```
 
-**Build from source**:
+**...OR.. Build from source**:
 
 Follow steps 1, 2 in the Lighthouse Beacon Node, then run:
 
