@@ -147,6 +147,31 @@ Note:
 - `--p2p-discovery-bootnodes` for ENR list (comma separated), if working with discovery, public net etc.
 - `--Xdata-storage-non-canonical-blocks-enabled` is added to store non-canonical blocks for debugging purposes.
 
+##### Docker
+
+Use the following command to run Teku from docker:
+```shell
+docker -v ./$TESTNET_NAME:/testnet -p 9000:9000/tcp -p 9000:9000/udp -p 8008:8008 -p 5051:5051 \
+  run mkalinin/teku:rayonism \
+  --network "/testnet/public/eth2_config.yaml" \
+  --data-path "/testnet/nodes/teku0/beacondata" \
+  --p2p-enabled=false \
+  --initial-state "/testnet/public/genesis.ssz" \
+  --eth1-endpoint $ETH1_ENDPOINT \
+  --metrics-enabled=true --metrics-interface=127.0.0.1 --metrics-port=8008 \
+  --p2p-discovery-enabled=false \
+  --p2p-peer-lower-bound=0 \
+  --p2p-port=9000 \
+  --rest-api-enabled=true \
+  --rest-api-docs-enabled=true \
+  --rest-api-interface=127.0.0.1 \
+  --rest-api-port=5051 \
+  --Xdata-storage-non-canonical-blocks-enabled=true \
+  --validator-keys "/testnet/private/$VALIDATOR_NODE_NAME/teku-keys:/testnet/private/$VALIDATOR_NODE_NAME/teku-secrets"
+```
+
+Note: `ETH1_ENDPOINT` should be figured out locally as it depends on OS and Eth1 node setup.
+
 ### Start Eth2 validators
 
 #### Teku
