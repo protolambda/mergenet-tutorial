@@ -12,6 +12,10 @@ if [ -z "$TESTNET_NAME" ]; then
     echo TESTNET_NAME is not set, exiting
     exit 1
 fi
+if [ -z "$VALIDATOR_NODE_NAME" ]; then
+    echo VALIDATOR_NODE_NAME is not set, exiting
+    exit 1
+fi
 if [ -z "$1" ]; then
     echo The first argument must be \"$BINARY\" or \"$DOCKER\", exiting
     exit 1
