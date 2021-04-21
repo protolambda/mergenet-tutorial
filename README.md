@@ -147,6 +147,46 @@ Note:
 - `--p2p-discovery-bootnodes` for ENR list (comma separated), if working with discovery, public net etc.
 - `--Xdata-storage-non-canonical-blocks-enabled` is added to store non-canonical blocks for debugging purposes.
 
+#### Prysm
+
+For now, Prysm provides instructions for building from source, but in the future can provide binaries and Docker containers for the merge testnet.
+
+Required dependencies:
+
+- UNIX operating system
+- The latest release of [Bazel](https://docs.bazel.build/versions/4.0.0/install.html) installed
+- The `cmake` package installed
+- The git package installed
+- `libssl-dev` installed
+- `libgmp-dev` installed 
+- `libtinfo5` installed
+
+Then, clone the repo and checkout the branch
+
+```shell
+git clone -b merge https://github.com/prysmaticlabs/prysm.git clients/prysm
+```
+
+Build the beacon node and validator
+
+```shell
+bazel build //beacon-chain:beacon-chain
+bazel build //validator:validator
+```
+
+Run the beacon node
+
+```shell
+bazel run //beacon-chain --define=ssz=minimal -- \
+--datadir="./$TESTNET_NAME/nodes/prysm0/beacondata" \
+--min-sync-peers=0 \
+--http-web3provider=http://127.0.0.1:8545 \
+--bootstrap-node= \
+--chain-config-file="./$TESTNET_NAME/public/eth2_config.yaml" \
+--genesis-state="./$TESTNET_NAME/public/genesis.ssz" \
+--minimal-config
+```
+
 ### Start Eth2 validators
 
 #### Teku
@@ -154,6 +194,7 @@ Note:
 If you include `--validator-keys` in the beacon node, it will run a validator-client as part of the node, and **you do not have to run a separate validator**.
 
 However, if you want to run a separate validator client, use:
+
 ```shell
 mkdir -p "./$TESTNET_NAME/nodes/teku0/validatordata"
 ./clients/teku/build/install/teku/bin/teku validator-client \
@@ -163,10 +204,14 @@ mkdir -p "./$TESTNET_NAME/nodes/teku0/validatordata"
   --validator-keys "./$TESTNET_NAME/private/$VALIDATOR_NODE_NAME/teku-keys:./$TESTNET_NAME/private/$VALIDATOR_NODE_NAME/teku-secrets
 ```
 
-
 #### Prysm
 
-Work in progress.
+```shell
+bazel run //validator --define=ssz=minimal -- \
+ --wallet-dir="./$TESTNET_NAME/private/valclient0/prysm" \
+ --chain-config-file="./$TESTNET_NAME/public/eth2_config.yaml" \
+ --minimal-config
+```
 
 #### Lighthouse
 
