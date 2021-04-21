@@ -178,13 +178,14 @@ Run the beacon node
 
 ```shell
 bazel run //beacon-chain --define=ssz=minimal -- \
---datadir="./$TESTNET_NAME/nodes/prysm0/beacondata" \
---min-sync-peers=0 \
---http-web3provider=http://127.0.0.1:8545 \
---bootstrap-node= \
---chain-config-file="./$TESTNET_NAME/public/eth2_config.yaml" \
---genesis-state="./$TESTNET_NAME/public/genesis.ssz" \
---minimal-config
+ --datadir="./$TESTNET_NAME/nodes/prysm0/beacondata" \
+ --min-sync-peers=0 \
+ --http-web3provider=http://127.0.0.1:8545 \
+ --bootstrap-node= \
+ --chain-config-file="./$TESTNET_NAME/public/eth2_config.yaml" \
+ --genesis-state="./$TESTNET_NAME/public/genesis.ssz" \
+ --force-clear-db \
+ --minimal-config
 ```
 
 ### Start Eth2 validators
@@ -201,6 +202,7 @@ mkdir -p "./$TESTNET_NAME/nodes/teku0/validatordata"
   --network "./$TESTNET_NAME/public/eth2_config.yaml" \
   --data-path "./$TESTNET_NAME/nodes/teku0/validatordata" \
   --beacon-node-api-endpoint "http://127.0.0.1:5051" \
+--force-clear-db \
   --validator-keys "./$TESTNET_NAME/private/$VALIDATOR_NODE_NAME/teku-keys:./$TESTNET_NAME/private/$VALIDATOR_NODE_NAME/teku-secrets
 ```
 
@@ -210,6 +212,7 @@ mkdir -p "./$TESTNET_NAME/nodes/teku0/validatordata"
 bazel run //validator --define=ssz=minimal -- \
  --wallet-dir="./$TESTNET_NAME/private/valclient0/prysm" \
  --chain-config-file="./$TESTNET_NAME/public/eth2_config.yaml" \
+ --force-clear-db \
  --minimal-config
 ```
 
