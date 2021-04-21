@@ -137,7 +137,7 @@ python generate_eth1_nethermind_conf.py > "$TESTNET_NAME/public/eth1_nethermind_
 
 Run Single Nethermind client:
 ```shell
-clients/nethermind/Nethermind.Runner.exe -c catalyst.cfg \
+./clients/nethermind/Nethermind.Runner -c catalyst.cfg \
 	--Init.ChainSpecPath ./$TESTNET_NAME/public/eth1_nethermind_config.json \
 	--Merge.BlockAuthorAccount 0x1000000000000000000000000000000000000000 \
 	--baseDbPath "./$TESTNET_NAME/nodes/nethermind0/db" \
@@ -147,7 +147,7 @@ clients/nethermind/Nethermind.Runner.exe -c catalyst.cfg \
 To run multiple Nethermind clients customise paths and communication ports per instance:
 
 ```shell
-clients/nethermind/Nethermind.Runner.exe -c catalyst.cfg \
+./clients/nethermind/Nethermind.Runner -c catalyst.cfg \
 	--Init.ChainSpecPath ./$TESTNET_NAME/public/eth1_nethermind_config.json \
 	--Merge.BlockAuthorAccount 0x1000000000000000000000000000000000000000 \
 	--baseDbPath "./$TESTNET_NAME/nodes/nethermind<id>/db" \
