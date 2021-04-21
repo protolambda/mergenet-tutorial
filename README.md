@@ -209,8 +209,7 @@ bazel run //beacon-chain --define=ssz=minimal -- \
  --bootstrap-node= \
  --chain-config-file="./$TESTNET_NAME/public/eth2_config.yaml" \
  --genesis-state="./$TESTNET_NAME/public/genesis.ssz" \
- --force-clear-db \
- --minimal-config
+ --force-clear-db
 ```
 
 ### Start Eth2 validators
@@ -236,8 +235,7 @@ mkdir -p "./$TESTNET_NAME/nodes/teku0/validatordata"
 bazel run //validator --define=ssz=minimal -- \
  --wallet-dir="./$TESTNET_NAME/private/valclient0/prysm" \
  --chain-config-file="./$TESTNET_NAME/public/eth2_config.yaml" \
- --force-clear-db \
- --minimal-config
+ --force-clear-db
 ```
 
 #### Lighthouse
