@@ -106,13 +106,64 @@ Run:
 
 #### Nethermind
 
-Work in progress.
+Install prerequisites:
+
+1. linux/linux-arm64
+
+```shell
+sudo apt-get update && sudo apt-get install libsnappy-dev libc6-dev libc6 unzip
+```
+
+2. macOS
+
+```shell
+brew install rocksdb
+```
+
+Download newest (top green) package for your OS from 'rayonism' branch [here](https://github.com/NethermindEth/nethermind/actions/workflows/build-nethermind-packages.yml?query=branch%3Arayonism)
+
+Note: *Temporary until rayonism in main release*
+
+Unzip the package to /clients/nethermind/
+
+Create Nethermind chain configuration.
+
+Note: *Both Geth-style chain configuration and Nethermind chain configurations are needed. Other general steps in this tutorial are dependent on Geth-style chain configuration.*
+
+```shell
+# Configure Eth1 chain for Nethermind
+python generate_eth1_nethermind_conf.py > "$TESTNET_NAME/public/eth1_nethermind_config.json"
+```
+
+Run Single Nethermind client:
+```shell
+./clients/nethermind/Nethermind.Runner -c catalyst.cfg \
+	--Init.ChainSpecPath ./$TESTNET_NAME/public/eth1_nethermind_config.json \
+	--Merge.BlockAuthorAccount 0x1000000000000000000000000000000000000000 \
+	--baseDbPath "./$TESTNET_NAME/nodes/nethermind0/db" \
+	--Init.LogDirectory "./$TESTNET_NAME/nodes/nethermind0/logs"
+```
+
+To run multiple Nethermind clients customise paths and communication ports per instance:
+
+```shell
+./clients/nethermind/Nethermind.Runner -c catalyst.cfg \
+	--Init.ChainSpecPath ./$TESTNET_NAME/public/eth1_nethermind_config.json \
+	--Merge.BlockAuthorAccount 0x1000000000000000000000000000000000000000 \
+	--baseDbPath "./$TESTNET_NAME/nodes/nethermind<id>/db" \
+	--Init.LogDirectory "./$TESTNET_NAME/nodes/nethermind<id>/logs" \
+	--JsonRpc.Port <rpc_port> \
+	--JsonRpc.WebSocketsPort <rpc_websocket_port> \
+	--Network.DiscoveryPort <network_discovery_port> \
+	--Network.P2PPort <network_p2p_port>
+```
+
 
 ### Start Eth2 beacon nodes
 
 #### Teku
 
-Install (assumes openjdk 15+ is installed):
+Install (assumes openjdk 15 is installed, openjdk 16 is currently not supported by gradlew):
 ```shell
 git clone -b rayonism-merge https://github.com/txrx-research/teku.git clients/teku
 cd clients/teku
