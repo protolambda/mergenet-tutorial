@@ -223,6 +223,46 @@ docker -v ./$TESTNET_NAME:/testnet -p 9000:9000/tcp -p 9000:9000/udp -p 8008:800
 
 Note: `ETH1_ENDPOINT` should be figured out locally as it depends on OS and Eth1 node setup.
 
+## Lighthouse
+
+Lighthouse is started via one-liner scripts in [`./lh_scripts`](./lh_scripts).
+There are two options:
+
+- **Docker**: downloads an image from Docker Hub (easy).
+- **Build from source**: compile the Rust code to a binary (slightly less easy).
+
+**Docker**:
+
+```shell
+./lh_scripts/start_beacon.sh docker
+```
+
+**...OR... Build from source**:
+
+1. Install deps:
+
+```shell
+# System deps (assuming Ubuntu, you may need to parse to your OS)
+sudo apt install -y git gcc g++ make cmake pkg-config
+# Install Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+2. Build Lighthouse from source:
+
+```shell
+git clone -b rayonism https://github.com/sigp/lighthouse.git clients/lighthouse
+cd clients/lighthouse
+make
+cd ../..
+```
+
+3. Start Lighthouse
+
+```shell
+./lh_scripts/start_beacon.sh binary
+```
+
 ### Start Eth2 validators
 
 #### Teku
@@ -246,8 +286,24 @@ Work in progress.
 
 #### Lighthouse
 
-Work in progress.
+The instructions are effectively the same as the Lighthouse Beacon Node.
 
+*Note: permissions issues may prevent switching between the `docker` and
+`binary` options. For maximal ease of use, pick an option and stick with it.*
+
+**Docker**:
+
+```shell
+./lh_scripts/start_validator.sh docker
+```
+
+**...OR... Build from source**:
+
+Follow steps 1, 2 in the Lighthouse Beacon Node, then run:
+
+```shell
+./lh_scripts/start_validator.sh binary
+```
 
 ## Genesis
 
