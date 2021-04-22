@@ -122,7 +122,7 @@ brew install rocksdb
 
 Download newest (top green) package for your OS from 'rayonism' branch [here](https://github.com/NethermindEth/nethermind/actions/workflows/build-nethermind-packages.yml?query=branch%3Arayonism)
 
-Note: *Temporary until rayonism is stable and in main release*
+Note: *Temporary until rayonism in main release*
 
 Unzip the package to /clients/nethermind/
 
