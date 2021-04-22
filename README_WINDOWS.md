@@ -114,7 +114,7 @@ Unzip the package to \clients\nethermind\
 
 Create Nethermind chain configuration.
 
-Note: *Both Geth-style chain configuration and Nethermind chain configurations is needed. Other general steps in this tutorial are dependent on Geth-style chain configuration.*
+Note: *Both Geth-style chain configuration and Nethermind chain configurations are needed. Other general steps in this tutorial are dependent on Geth-style chain configuration.*
 
 ```shell
 # Configure Eth1 chain for Nethermind
