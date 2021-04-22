@@ -100,9 +100,24 @@ mkdir -p "$TESTNET_NAME/nodes/catalyst0/chaindata"
 Run:
 ```shell
 # block proposal rewards/fees go to the below 'etherbase', change it if you like to spend them
-./clients/catalyst/build/bin/catalyst --catalyst --rpc --rpcapi net,eth,consensus --nodiscover \
+./clients/catalyst/build/bin/catalyst --catalyst --http --http.api net,eth,consensus --nodiscover \
   --miner.etherbase 0x1000000000000000000000000000000000000000 --datadir "./$TESTNET_NAME/nodes/catalyst0/chaindata"
 ```
+
+##### Docker
+
+Use the following command to run Catalyst from docker:
+```shell
+docker run -v "$(pwd)/$TESTNET_NAME:/testnet" -u $(id -u):$(id -g) --net host \
+  ethereum/client-go --catalyst --http --http.api net,eth,consensus --nodiscover \
+  --miner.etherbase 0x1000000000000000000000000000000000000000 \
+  --datadir "/testnet/nodes/catalyst0/chaindata"
+```
+
+Note:
+- `--net host` to map container's network to the host
+- `-u $(id -u):$(id -g)` to allow for writing to the chain data folder
+- works on Linux but might require some tweaks to run it on Mac and Windows
 
 #### Nethermind
 
@@ -202,13 +217,13 @@ Note:
 
 Use the following command to run Teku from docker:
 ```shell
-docker -v ./$TESTNET_NAME:/testnet -p 9000:9000/tcp -p 9000:9000/udp -p 8008:8008 -p 5051:5051 \
-  run mkalinin/teku:rayonism \
+docker run -v "$(pwd)/$TESTNET_NAME:/testnet" -e VALIDATOR_NODE_NAME=$VALIDATOR_NODE_NAME -u $(id -u):$(id -g) --net host \
+  mkalinin/teku:rayonism \
   --network "/testnet/public/eth2_config.yaml" \
   --data-path "/testnet/nodes/teku0/beacondata" \
   --p2p-enabled=false \
   --initial-state "/testnet/public/genesis.ssz" \
-  --eth1-endpoint $ETH1_ENDPOINT \
+  --eth1-endpoint http://127.0.0.1:8545 \
   --metrics-enabled=true --metrics-interface=127.0.0.1 --metrics-port=8008 \
   --p2p-discovery-enabled=false \
   --p2p-peer-lower-bound=0 \
@@ -220,8 +235,6 @@ docker -v ./$TESTNET_NAME:/testnet -p 9000:9000/tcp -p 9000:9000/udp -p 8008:800
   --Xdata-storage-non-canonical-blocks-enabled=true \
   --validator-keys "/testnet/private/$VALIDATOR_NODE_NAME/teku-keys:/testnet/private/$VALIDATOR_NODE_NAME/teku-secrets"
 ```
-
-Note: `ETH1_ENDPOINT` should be figured out locally as it depends on OS and Eth1 node setup.
 
 ## Lighthouse
 
