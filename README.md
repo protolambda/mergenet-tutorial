@@ -153,21 +153,19 @@ docker run \
 
 ###### Install prerequisites
 
-####### Linux/Linux-arm64
-
+linux-x64(linux-amd64)/linux-arm64:
 ```shell
 sudo apt-get update && sudo apt-get install libsnappy-dev libc6-dev libc6 unzip
 ```
 
-######## macOS
-
+macOS:
 ```shell
 brew install rocksdb
 ```
 
 ###### Download packages
 
-Download package from [Nethermind releases page](https://github.com/NethermindEth/nethermind/releases) make sure you are downloading version >= 1.10.62
+Download package from [Nethermind releases page](https://github.com/NethermindEth/nethermind/releases) make sure you are downloading version >= **1.10.62**
 
 Unzip the package to /clients/nethermind/
 
