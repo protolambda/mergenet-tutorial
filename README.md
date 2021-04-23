@@ -121,27 +121,9 @@ Note:
 
 #### Nethermind
 
-Install prerequisites:
+You can run Nethermind natively on linux-x64, linux-arm64, macOS and Windows or you can run it through Docker image.
 
-1. linux/linux-arm64
-
-```shell
-sudo apt-get update && sudo apt-get install libsnappy-dev libc6-dev libc6 unzip
-```
-
-2. macOS
-
-```shell
-brew install rocksdb
-```
-
-Download newest (top green) package for your OS from 'rayonism' branch [here](https://github.com/NethermindEth/nethermind/actions/workflows/build-nethermind-packages.yml?query=branch%3Arayonism)
-
-Note: *Temporary until rayonism in main release*
-
-Unzip the package to /clients/nethermind/
-
-Create Nethermind chain configuration.
+##### Create Nethermind chain configuration
 
 Note: *Both Geth-style chain configuration and Nethermind chain configurations are needed. Other general steps in this tutorial are dependent on Geth-style chain configuration.*
 
@@ -150,7 +132,47 @@ Note: *Both Geth-style chain configuration and Nethermind chain configurations a
 python generate_eth1_nethermind_conf.py > "$TESTNET_NAME/public/eth1_nethermind_config.json"
 ```
 
-Run Single Nethermind client:
+##### Docker
+
+Use the following command to run Nethermind from docker:
+```shell
+docker run \
+  --name nethermind \
+  -p 8545:8545 \
+  -v ${PWD}/$TESTNET_NAME/public/eth1_nethermind_config.json:/nethermind/chainspec/catalyst.json \
+  -v ${PWD}/$TESTNET_NAME/nodes/nethermind0/db:/nethermind/nethermind_db \
+  -v ${PWD}/$TESTNET_NAME/nodes/nethermind0/logs:/nethermind/logs \
+  -itd nethermind/nethermind \
+  -c catalyst \
+  --JsonRpc.Port 8545 \
+  --JsonRpc.Host 0.0.0.0 \
+  --Merge.BlockAuthorAccount 0x1000000000000000000000000000000000000000
+```
+
+##### Native package
+
+###### Install prerequisites
+
+linux-x64(linux-amd64)/linux-arm64:
+```shell
+sudo apt-get update && sudo apt-get install libsnappy-dev libc6-dev libc6 unzip
+```
+
+macOS:
+```shell
+brew install rocksdb
+```
+
+###### Download packages
+
+Download package from [Nethermind releases page](https://github.com/NethermindEth/nethermind/releases) make sure you are downloading version >= **1.10.62**
+
+Unzip the package to /clients/nethermind/
+
+###### Run single Nethermind client
+
+Use the following command to run Nethermind natively:
+
 ```shell
 ./clients/nethermind/Nethermind.Runner -c catalyst.cfg \
 	--Init.ChainSpecPath ./$TESTNET_NAME/public/eth1_nethermind_config.json \
@@ -159,7 +181,9 @@ Run Single Nethermind client:
 	--Init.LogDirectory "./$TESTNET_NAME/nodes/nethermind0/logs"
 ```
 
-To run multiple Nethermind clients customise paths and communication ports per instance:
+###### Run multiple Nethermind clients/catalyst
+
+Customise paths and communication ports per instance:
 
 ```shell
 ./clients/nethermind/Nethermind.Runner -c catalyst.cfg \
@@ -172,7 +196,6 @@ To run multiple Nethermind clients customise paths and communication ports per i
 	--Network.DiscoveryPort <network_discovery_port> \
 	--Network.P2PPort <network_p2p_port>
 ```
-
 
 ### Start Eth2 beacon nodes
 
