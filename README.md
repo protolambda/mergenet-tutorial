@@ -4,7 +4,7 @@ Let's set up a local eth1-eth2 merge testnet!
 
 ## Pre-requisites install
 
-Note: *Python and Go standard installs assumed*
+Note: *Python and Go (1.16+) standard installs assumed*
 
 ```shell
 # Create, start and install python venv
@@ -12,7 +12,7 @@ python -m venv venv
 . venv/bin/activate 
 pip install -r requirements.txt
 
-# Install eth2-testnet-genesis tool
+# Install eth2-testnet-genesis tool (Go 1.16+ required)
 go install github.com/protolambda/eth2-testnet-genesis@latest
 # Install eth2-val-tools
 go install github.com/protolambda/eth2-val-tools@latest
