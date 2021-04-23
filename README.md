@@ -4,12 +4,12 @@ Let's set up a local eth1-eth2 merge testnet!
 
 ## Pre-requisites install
 
-Note: *Python and Go (1.16+) standard installs assumed*
+Note: *Python (incl. `python-dev`) and Go (1.16+) standard installs assumed*
 
 ```shell
 # Create, start and install python venv
 python -m venv venv 
-. venv/bin/activate 
+. venv/bin/activate
 pip install -r requirements.txt
 
 # Install eth2-testnet-genesis tool (Go 1.16+ required)
@@ -39,7 +39,8 @@ python generate_eth1_conf.py > "$TESTNET_NAME/public/eth1_config.json"
 python generate_eth2_conf.py > "$TESTNET_NAME/public/eth2_config.yaml"
 ```
 
-Configure tranche(s) of validators, edit `eth2_genesis_validators.yaml`.
+Configure tranche(s) of validators, edit `genesis_validators.yaml`.
+Note: defaults test-purpose mnemonic and configuration is included already, no need to edit for minimal local setup.
 Make sure that total of `count` entries is more than the configured `MIN_GENESIS_ACTIVE_VALIDATOR_COUNT` (eth2 config).
 
 ## Prepare Eth2 data
