@@ -81,13 +81,14 @@ python generate_eth1_nethermind_conf.py "$TESTNET_PATH/private/mergenet.yaml" > 
 # Configure Eth2 chain
 python generate_eth2_conf.py "$TESTNET_PATH/private/mergenet.yaml" > "$TESTNET_PATH/public/eth2_config.yaml"
 
-cat > "$TESTNET_PATH/genesis_validators.yaml" << EOT
+echo "configuring genesis validators"
+cat > "$TESTNET_PATH/private/genesis_validators.yaml" << EOT
 # a 24 word BIP 39 mnemonic
 - mnemonic: "${VALIDATORS_MNEMONIC}"
   count: 64  # 64 for minimal config, 16384 for mainnet config
 EOT
 
-# Generate Genesis Beacon State
+echo "generating genesis BeaconState"
 eth2-testnet-genesis merge \
   --eth1-config "$TESTNET_PATH/public/eth1_config.json" \
   --eth2-config "$TESTNET_PATH/public/eth2_config.yaml" \
@@ -95,14 +96,17 @@ eth2-testnet-genesis merge \
   --state-output "$TESTNET_PATH/public/genesis.ssz" \
   --tranches-dir "$TESTNET_PATH/private/tranches"
 
-# echo "preparing eth1 data"
+echo "preparing geth initial state"
 NODE_NAME=catalyst0
+mkdir "$TESTNET_PATH/nodes/$NODE_NAME"
 docker run \
-  --name geth \
+  --name "$NODE_NAME" \
+  --rm \
+  -u $(id -u):$(id -g) \
   -v "$TESTNET_PATH/nodes/$NODE_NAME:/gethdata" \
   -v "$TESTNET_PATH/public/eth1_config.json:/networkdata/eth1_config.json" \
   --net host \
-  -itd $GETH_IMAGE \
+  $GETH_IMAGE \
   --catalyst \
   --datadir "/gethdata/chaindata" \
   init "/networkdata/eth1_config.json"
@@ -111,6 +115,7 @@ docker run \
 
 # Go-ethereum
 # Note: networking is disabled on Geth in merge mode (at least for now)
+echo "starting geth node"
 NODE_NAME=catalyst0
 docker run \
   --name "$NODE_NAME" \
@@ -128,7 +133,11 @@ docker run \
 
 # Nethermind
 # Note: networking is active, the transaction pool propagation is active on nethermind
+echo "starting nethermind node"
 NODE_NAME=nethermind0
+mkdir "$TESTNET_PATH/nodes/$NODE_NAME"
+mkdir "$TESTNET_PATH/nodes/$NODE_NAME/db"
+mkdir "$TESTNET_PATH/nodes/$NODE_NAME/logs"
 docker run \
   --name $NODE_NAME \
   --net host \
@@ -145,7 +154,9 @@ docker run \
 # Run eth2 beacon nodes
 
 # Teku
+echo "starting teku beacon node"
 NODE_NAME=teku0bn
+mkdir "$TESTNET_PATH/nodes/$NODE_NAME"
 docker run \
   --name $NODE_NAME \
   --net host \
@@ -170,7 +181,9 @@ docker run \
   --Xdata-storage-non-canonical-blocks-enabled=true
 
 # Lighthouse
+echo "starting lighthouse beacon node"
 NODE_NAME=lighthouse0bn
+mkdir "$TESTNET_PATH/nodes/$NODE_NAME"
 docker run \
   --name $NODE_NAME \
   --net host \
@@ -179,6 +192,7 @@ docker run \
   -v "$TESTNET_PATH/public/eth2_config.yaml:/networkdata/eth2_config.yaml" \
   -v "$TESTNET_PATH/public/genesis.ssz:/networkdata/genesis.ssz" \
   -itd $LIGHTHOUSE_DOCKER_IMAGE \
+  lighthouse \
   --datadir "/beacondata" \
   --testnet-deposit-contract-deploy-block 0 \
   --testnet-genesis-state "/networkdata/genesis.ssz" \
@@ -203,12 +217,13 @@ docker run \
 # validators
 
 # Teku
+echo "starting teku validator client"
 NODE_NAME=teku0vc
 NODE_PATH="$TESTNET_PATH/nodes/$NODE_NAME"
 if [ -d "$NODE_PATH" ]
 then
   echo "creating data for $NODE_NAME"
-  mkdir -p
+  mkdir -p "$NODE_PATH"
   cp -r "$TESTNET_PATH/private/validator0/teku-keys" "$NODE_PATH/keys"
   cp -r "$TESTNET_PATH/private/validator0/teku-secrets" "$NODE_PATH/secrets"
 else
@@ -232,12 +247,13 @@ docker run \
 
 
 # Lighthouse
+echo "starting lighthouse validator client"
 NODE_NAME=lighthouse0vc
 NODE_PATH="$TESTNET_PATH/nodes/$NODE_NAME"
 if [ -d "$NODE_PATH" ]
 then
   echo "creating data for $NODE_NAME"
-  mkdir -p
+  mkdir -p "$NODE_PATH"
   cp -r "$TESTNET_PATH/private/validator1/keys" "$NODE_PATH/keys"
   cp -r "$TESTNET_PATH/private/validator1/secrets" "$NODE_PATH/secrets"
 else
@@ -252,6 +268,7 @@ docker run \
   -v "$TESTNET_PATH/public/eth2_config.yaml:/networkdata/eth2_config.yaml" \
   -v "$TESTNET_PATH/public/genesis.ssz:/networkdata/genesis.ssz" \
   -itd $LIGHTHOUSE_DOCKER_IMAGE \
+  lighthouse \
   --testnet-deposit-contract-deploy-block 0 \
   --testnet-genesis-state "/networkdata/genesis.ssz" \
   --testnet-yaml-config "/networkdata/eth2_config.yaml" \
