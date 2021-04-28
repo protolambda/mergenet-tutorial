@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 LIGHTHOUSE_DOCKER_IMAGE=sigp/lighthouse:rayonism
 TEKU_DOCKER_IMAGE=mkalinin/teku:rayonism
 NETHERMIND_IMAGE=nethermind/nethermind:latest
