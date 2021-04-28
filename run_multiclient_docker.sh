@@ -25,24 +25,30 @@ python -m venv venv
 . venv/bin/activate
 pip install -r requirements.txt
 
-
-# Prepare keystores
-# TODO
-eth2-val-tools keystores \
-  --out-loc "$TESTNET_PATH/private/$VALIDATOR_NODE_NAME" \
-  --prysm-pass="foobar" \
-  --source-min=0 \
-  --source-max=64 \
-  --source-mnemonic="lumber kind orange gold firm achieve tree robust peasant april very word ordinary before treat way ivory jazz cereal debate juice evil flame sadness"
-
-# TODO: output secrets and keystores to $TESTNET_PATH/nodes/$NODE_NAME
-
-
 # Configure testnet
-mkdir "$TESTNET_PATH/public"
-mkdir "$TESTNET_PATH/private"
-mkdir "$TESTNET_PATH/nodes"
+mkdir -p "$TESTNET_PATH/public"
+mkdir -p "$TESTNET_PATH/private"
+mkdir -p "$TESTNET_PATH/nodes"
 
+echo "Preparing keystores"
+VALIDATORS_MNEMONIC="lumber kind orange gold firm achieve tree robust peasant april very word ordinary before treat way ivory jazz cereal debate juice evil flame sadness"
+PRYSM_BULK_KEYSTORE_PASS="foobar"
+
+eth2-val-tools keystores \
+  --out-loc "$TESTNET_PATH/private/validator0" \
+  --prysm-pass="$PRYSM_BULK_KEYSTORE_PASS" \
+  --source-min=0 \
+  --source-max=32 \
+  --source-mnemonic="$VALIDATORS_MNEMONIC"
+
+eth2-val-tools keystores \
+  --out-loc "$TESTNET_PATH/private/validator1" \
+  --prysm-pass="$PRYSM_BULK_KEYSTORE_PASS" \
+  --source-min=32 \
+  --source-max=64 \
+  --source-mnemonic="$VALIDATORS_MNEMONIC"
+
+echo "configuring chains"
 # Configure Eth1 chain
 python generate_eth1_conf.py > "$TESTNET_PATH/public/eth1_config.json"
 # Configure Eth1 chain for Nethermind
@@ -59,15 +65,17 @@ eth2-testnet-genesis merge \
   --tranches-dir "$TESTNET_PATH/private/tranches"
 
 
-# prepare eth1 chaindata
+# echo "preparing eth1 data"
+NODE_NAME=catalyst0
 docker run \
   --name geth \
-  -v "$TESTNET_PATH/nodes/geth0:/gethdata" \
+  -v "$TESTNET_PATH/nodes/$NODE_NAME:/gethdata" \
+  -v "$TESTNET_PATH/public/eth1_config.json:/networkdata/eth1_config.json" \
   --net host \
   -itd $GETH_IMAGE \
   --catalyst \
   --datadir "/gethdata/chaindata" \
-  init "./$TESTNET_PATH/public/eth1_config.json"
+  init "/networkdata/eth1_config.json"
 
 # Run eth1 nodes
 
@@ -82,7 +90,7 @@ docker run \
   -itd $GETH_IMAGE \
   --catalyst \
   --http --http.api net,eth,consensus \
-  --http.port 8545 \
+  --http.port 8500 \
   --http.addr 0.0.0.0 \
   --nodiscover \
   --miner.etherbase 0x1000000000000000000000000000000000000000 \
@@ -100,7 +108,7 @@ docker run \
   -v "$TESTNET_PATH/nodes/$NODE_NAME/logs:/nethermind/logs" \
   -itd $NETHERMIND_IMAGE \
   -c catalyst \
-  --JsonRpc.Port 8545 \
+  --JsonRpc.Port 8501 \
   --JsonRpc.Host 0.0.0.0 \
   --Merge.BlockAuthorAccount 0x1000000000000000000000000000000000000000
 
@@ -120,7 +128,7 @@ docker run \
   --data-path "/beacondata" \
   --p2p-enabled=false \
   --initial-state "/networkdata/genesis.ssz" \
-  --eth1-endpoint http://127.0.0.1:8545 \
+  --eth1-endpoint "http://127.0.0.1:8500" \
   --metrics-enabled=true --metrics-interface=0.0.0.0 --metrics-port=8000 \
   --p2p-discovery-enabled=false \
   --p2p-peer-lower-bound=0 \
@@ -146,6 +154,7 @@ docker run \
   --testnet-genesis-state "/networkdata/genesis.ssz" \
   --testnet-yaml-config "/networkdata/eth2_config.yaml" \
   beacon_node \
+  --eth1-endpoints "http://127.0.0.1/8501" \
   --http \
   --http-address 0.0.0.0 \
   --http-port 4001 \
@@ -165,6 +174,17 @@ docker run \
 
 # Teku
 NODE_NAME=teku0vc
+NODE_PATH="$TESTNET_PATH/nodes/$NODE_NAME"
+if [ -d "$NODE_PATH" ]
+then
+  echo "creating data for $NODE_NAME"
+  mkdir -p
+  cp -r "$TESTNET_PATH/private/validator0/teku-keys" "$NODE_PATH/keys"
+  cp -r "$TESTNET_PATH/private/validator0/teku-secrets" "$NODE_PATH/secrets"
+else
+  echo "$NODE_NAME already has existing data"
+fi
+
 docker run \
   --name $NODE_NAME \
   --net host \
@@ -178,10 +198,22 @@ docker run \
   --data-path "/validatordata" \
   --beacon-node-api-endpoint "http://127.0.0.1:4000" \
   --graffiti="teku" \
-  --validator-keys "/validatordata/teku-keys:/validatordata/teku-secrets"
+  --validator-keys "/validatordata/keys:/validatordata/secrets"
+
 
 # Lighthouse
 NODE_NAME=lighthouse0vc
+NODE_PATH="$TESTNET_PATH/nodes/$NODE_NAME"
+if [ -d "$NODE_PATH" ]
+then
+  echo "creating data for $NODE_NAME"
+  mkdir -p
+  cp -r "$TESTNET_PATH/private/validator1/keys" "$NODE_PATH/keys"
+  cp -r "$TESTNET_PATH/private/validator1/secrets" "$NODE_PATH/secrets"
+else
+  echo "$NODE_NAME already has existing data"
+fi
+
 docker run \
   --name $NODE_NAME \
   --net host \
