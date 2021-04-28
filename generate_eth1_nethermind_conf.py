@@ -1,10 +1,15 @@
 from web3.auto import w3
 import json
 import ruamel.yaml as yaml
+import sys
 
 w3.eth.account.enable_unaudited_hdwallet_features()
 
-with open("mergenet.yaml") as stream:
+mergenet_config_path = "mergenet.yaml"
+if len(sys.argv) > 1:
+    mergenet_config_path = sys.argv[1]
+
+with open(mergenet_config_path) as stream:
     data = yaml.safe_load(stream)
 
 out = {

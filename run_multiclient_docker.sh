@@ -5,14 +5,18 @@ TEKU_DOCKER_IMAGE=mkalinin/teku:rayonism
 NETHERMIND_IMAGE=nethermind/nethermind:latest
 GETH_IMAGE=ethereum/client-go:latest
 
+VALIDATORS_MNEMONIC="lumber kind orange gold firm achieve tree robust peasant april very word ordinary before treat way ivory jazz cereal debate juice evil flame sadness"
+ETH1_MNEMONIC="enforce patient ridge volume question system myself moon world glass later hello tissue east chair suspect remember check chicken bargain club exit pilot sand"
+PRYSM_BULK_KEYSTORE_PASS="foobar"
+
 # Ensure necessary env vars are present.
 if [ -z "$TESTNET_NAME" ]; then
     echo TESTNET_NAME is not set, exiting
     exit 1
 fi
 
-mkdir -p "testnets/$TESTNET_NAME"
 TESTNET_PATH="${PWD}/testnets/$TESTNET_NAME"
+mkdir -p "$TESTNET_PATH"
 
 # Pull client images
 docker pull $LIGHTHOUSE_DOCKER_IMAGE
@@ -31,8 +35,6 @@ mkdir -p "$TESTNET_PATH/private"
 mkdir -p "$TESTNET_PATH/nodes"
 
 echo "Preparing keystores"
-VALIDATORS_MNEMONIC="lumber kind orange gold firm achieve tree robust peasant april very word ordinary before treat way ivory jazz cereal debate juice evil flame sadness"
-PRYSM_BULK_KEYSTORE_PASS="foobar"
 
 eth2-val-tools keystores \
   --out-loc "$TESTNET_PATH/private/validator0" \
@@ -48,22 +50,48 @@ eth2-val-tools keystores \
   --source-max=64 \
   --source-mnemonic="$VALIDATORS_MNEMONIC"
 
+ETH1_GENESIS_TIMESTAMP=$(date +%s)
+ETH2_GENESIS_DELAY=600
+
+echo "configuring testnet, genesis: $ETH1_GENESIS_TIMESTAMP (eth1) + $ETH2_GENESIS_DELAY (eth2 delay) = $((ETH1_GENESIS_TIMESTAMP + ETH2_GENESIS_DELAY))"
+cat > "$TESTNET_PATH/private/mergenet.yaml" << EOT
+mnemonic: ${ETH1_MNEMONIC}
+eth1_premine:
+  "m/44'/60'/0'/0/0": 10000000ETH
+  "m/44'/60'/0'/0/1": 10000000ETH
+  "m/44'/60'/0'/0/2": 10000000ETH
+chain_id: 700
+deposit_contract_address: "0x4242424242424242424242424242424242424242"
+# either 'minimal' or 'mainnet'
+eth2_base_config: minimal
+eth2_fork_version: "0x00000700"
+eth1_genesis_timestamp: ${ETH1_GENESIS_TIMESTAMP}
+# Tweak this. actual_genesis_timestamp = eth1_genesis_timestamp + eth2_genesis_delay
+eth2_genesis_delay: 600
+EOT
+
+
 echo "configuring chains"
 # Configure Eth1 chain
-python generate_eth1_conf.py > "$TESTNET_PATH/public/eth1_config.json"
+python generate_eth1_conf.py "$TESTNET_PATH/private/mergenet.yaml" > "$TESTNET_PATH/public/eth1_config.json"
 # Configure Eth1 chain for Nethermind
-python generate_eth1_nethermind_conf.py > "$TESTNET_PATH/public/eth1_nethermind_config.json"
+python generate_eth1_nethermind_conf.py "$TESTNET_PATH/private/mergenet.yaml" > "$TESTNET_PATH/public/eth1_nethermind_config.json"
 # Configure Eth2 chain
-python generate_eth2_conf.py > "$TESTNET_PATH/public/eth2_config.yaml"
+python generate_eth2_conf.py "$TESTNET_PATH/private/mergenet.yaml" > "$TESTNET_PATH/public/eth2_config.yaml"
+
+cat > "$TESTNET_PATH/genesis_validators.yaml" << EOT
+# a 24 word BIP 39 mnemonic
+- mnemonic: "${VALIDATORS_MNEMONIC}"
+  count: 64  # 64 for minimal config, 16384 for mainnet config
+EOT
 
 # Generate Genesis Beacon State
 eth2-testnet-genesis merge \
   --eth1-config "$TESTNET_PATH/public/eth1_config.json" \
   --eth2-config "$TESTNET_PATH/public/eth2_config.yaml" \
-  --mnemonics genesis_validators.yaml \
+  --mnemonics "$TESTNET_PATH/private/genesis_validators.yaml" \
   --state-output "$TESTNET_PATH/public/genesis.ssz" \
   --tranches-dir "$TESTNET_PATH/private/tranches"
-
 
 # echo "preparing eth1 data"
 NODE_NAME=catalyst0
