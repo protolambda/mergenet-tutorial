@@ -82,7 +82,7 @@ eth2-val-tools keystores \
   --source-mnemonic="$VALIDATORS_MNEMONIC"
 
 ETH1_GENESIS_TIMESTAMP=$(date +%s)
-ETH2_GENESIS_DELAY=60
+ETH2_GENESIS_DELAY=600
 
 echo "configuring testnet, genesis: $ETH1_GENESIS_TIMESTAMP (eth1) + $ETH2_GENESIS_DELAY (eth2 delay) = $((ETH1_GENESIS_TIMESTAMP + ETH2_GENESIS_DELAY))"
 cat > "$TESTNET_PATH/private/mergenet.yaml" << EOT
@@ -164,11 +164,11 @@ docker run \
 # Note: networking is active, the transaction pool propagation is active on nethermind
 echo "starting nethermind node"
 NODE_NAME=nethermind0
+# Note: unfortunately, running nethermind as non-root user in docker is a pain
 mkdir "$TESTNET_PATH/nodes/$NODE_NAME"
 docker run \
   --name $NODE_NAME \
   --net host \
-  -u $(id -u):$(id -g) \
   -v "$TESTNET_PATH/public/eth1_nethermind_config.json:/networkdata/eth1_nethermind_config.json" \
   -v "$TESTNET_PATH/nodes/$NODE_NAME:/netherminddata" \
   -itd $NETHERMIND_IMAGE \
@@ -195,7 +195,8 @@ docker run \
   -itd $TEKU_DOCKER_IMAGE \
   --network "/networkdata/eth2_config.yaml" \
   --data-path "/beacondata" \
-  --p2p-enabled=false \
+  --p2p-enabled=true \
+  --logging=trace \
   --initial-state "/networkdata/genesis.ssz" \
   --eth1-endpoint "http://127.0.0.1:8500" \
   --p2p-discovery-bootnodes "$BOOTNODE_ENR" \
@@ -226,6 +227,7 @@ docker run \
   --testnet-deposit-contract-deploy-block 0 \
   --testnet-genesis-state "/networkdata/genesis.ssz" \
   --testnet-yaml-config "/networkdata/eth2_config.yaml" \
+  --debug-level=trace \
   beacon_node \
   --eth1-endpoints "http://127.0.0.1/8501" \
   --boot-nodes "$BOOTNODE_ENR" \
