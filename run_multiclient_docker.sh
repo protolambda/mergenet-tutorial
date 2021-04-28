@@ -1,11 +1,17 @@
 #!/bin/bash
 
+# To clean up:
+# docker stop catalyst0 nethermind0 teku0bn teku0vc lighthouse0bn lighthouse0vc bootnode0
+# docker container prune
+# rm -rf testnets/$TESTNET_NAME
+
 set -e
 
 LIGHTHOUSE_DOCKER_IMAGE=sigp/lighthouse:rayonism
 TEKU_DOCKER_IMAGE=mkalinin/teku:rayonism
 NETHERMIND_IMAGE=nethermind/nethermind:latest
 GETH_IMAGE=ethereum/client-go:latest
+BOOTNODE_IMAGE=protolambda/eth2-bootnode:latest
 
 VALIDATORS_MNEMONIC="lumber kind orange gold firm achieve tree robust peasant april very word ordinary before treat way ivory jazz cereal debate juice evil flame sadness"
 ETH1_MNEMONIC="enforce patient ridge volume question system myself moon world glass later hello tissue east chair suspect remember check chicken bargain club exit pilot sand"
@@ -25,6 +31,7 @@ docker pull $LIGHTHOUSE_DOCKER_IMAGE
 docker pull $TEKU_DOCKER_IMAGE
 docker pull $NETHERMIND_IMAGE
 docker pull $GETH_IMAGE
+docker pull $BOOTNODE_IMAGE
 
 # Create venv for scripts
 python -m venv venv
@@ -35,6 +42,28 @@ pip install -r requirements.txt
 mkdir -p "$TESTNET_PATH/public"
 mkdir -p "$TESTNET_PATH/private"
 mkdir -p "$TESTNET_PATH/nodes"
+
+# Starting bootnode
+echo "starting discv5 bootnode"
+NODE_NAME=bootnode0
+mkdir "$TESTNET_PATH/nodes/$NODE_NAME"
+docker run \
+  --name "$NODE_NAME" \
+  --rm \
+  -u $(id -u):$(id -g) \
+  -v "$TESTNET_PATH/nodes/$NODE_NAME:/data" \
+  --net host \
+  -itd $BOOTNODE_IMAGE \
+  --api-addr "0.0.0.0:10000" \
+  --enr-ip "127.0.0.1" \
+  --enr-udp "11000" \
+  --listen-ip "0.0.0.0" \
+  --listen-udp "11000" \
+  --node-db "/data" \
+  --priv="c481fa289efe87b258365f057e6c3afa51dbbbf31d9c38246b36d0a48da326ee"
+
+# you can fetch this from `http://localhost:10000/enr"
+BOOTNODE_ENR="enr:-Ku4QOhH76YiJtgBrVBAmiotsLxS9lpdxbtYkpTdLen7CZCyTMCjcSuwcRnFggwn-IHbSEL2RC6kC-2BUHBf5yiVI3sBh2F0dG5ldHOIAAAAAAAAAACEZXRoMpD1pf1CAAAAAP__________gmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxoQN0nREs-mofKzp_XQ1M1xFrOkr9gMMgCdLFbvH7aPQHT4N1ZHCCKvg"
 
 echo "Preparing keystores"
 
@@ -53,7 +82,7 @@ eth2-val-tools keystores \
   --source-mnemonic="$VALIDATORS_MNEMONIC"
 
 ETH1_GENESIS_TIMESTAMP=$(date +%s)
-ETH2_GENESIS_DELAY=600
+ETH2_GENESIS_DELAY=60
 
 echo "configuring testnet, genesis: $ETH1_GENESIS_TIMESTAMP (eth1) + $ETH2_GENESIS_DELAY (eth2 delay) = $((ETH1_GENESIS_TIMESTAMP + ETH2_GENESIS_DELAY))"
 cat > "$TESTNET_PATH/private/mergenet.yaml" << EOT
@@ -69,7 +98,7 @@ eth2_base_config: minimal
 eth2_fork_version: "0x00000700"
 eth1_genesis_timestamp: ${ETH1_GENESIS_TIMESTAMP}
 # Tweak this. actual_genesis_timestamp = eth1_genesis_timestamp + eth2_genesis_delay
-eth2_genesis_delay: 600
+eth2_genesis_delay: ${ETH2_GENESIS_DELAY}
 EOT
 
 
@@ -141,9 +170,10 @@ docker run \
   --net host \
   -u $(id -u):$(id -g) \
   -v "$TESTNET_PATH/public/eth1_nethermind_config.json:/networkdata/eth1_nethermind_config.json" \
-  -v "$TESTNET_PATH/nodes/$NODE_NAME:/nethermind" \
+  -v "$TESTNET_PATH/nodes/$NODE_NAME:/netherminddata" \
   -itd $NETHERMIND_IMAGE \
   -c catalyst \
+  --datadir "/netherminddata" \
   --Init.ChainSpecPath "/networkdata/eth1_nethermind_config.json" \
   --JsonRpc.Port 8501 \
   --JsonRpc.Host 0.0.0.0 \
@@ -168,9 +198,10 @@ docker run \
   --p2p-enabled=false \
   --initial-state "/networkdata/genesis.ssz" \
   --eth1-endpoint "http://127.0.0.1:8500" \
+  --p2p-discovery-bootnodes "$BOOTNODE_ENR" \
   --metrics-enabled=true --metrics-interface=0.0.0.0 --metrics-port=8000 \
-  --p2p-discovery-enabled=false \
-  --p2p-peer-lower-bound=0 \
+  --p2p-discovery-enabled=true \
+  --p2p-peer-lower-bound=1 \
   --p2p-port=9000 \
   --rest-api-enabled=true \
   --rest-api-docs-enabled=true \
@@ -197,6 +228,7 @@ docker run \
   --testnet-yaml-config "/networkdata/eth2_config.yaml" \
   beacon_node \
   --eth1-endpoints "http://127.0.0.1/8501" \
+  --boot-nodes "$BOOTNODE_ENR" \
   --http \
   --http-address 0.0.0.0 \
   --http-port 4001 \
@@ -272,7 +304,7 @@ docker run \
   --testnet-yaml-config "/networkdata/eth2_config.yaml" \
   validator_client \
   --init-slashing-protection \
-  --beacon-nodes "127.0.0.1:4001" \
+  --beacon-nodes "http://127.0.0.1:4001" \
   --graffiti="lighthouse" \
   --validators-dir "/validatordata/keys" \
   --secrets-dir "/validatordata/secrets"
