@@ -136,17 +136,15 @@ docker run \
 echo "starting nethermind node"
 NODE_NAME=nethermind0
 mkdir "$TESTNET_PATH/nodes/$NODE_NAME"
-mkdir "$TESTNET_PATH/nodes/$NODE_NAME/db"
-mkdir "$TESTNET_PATH/nodes/$NODE_NAME/logs"
 docker run \
   --name $NODE_NAME \
   --net host \
   -u $(id -u):$(id -g) \
-  -v "$TESTNET_PATH/public/eth1_nethermind_config.json:/nethermind/chainspec/catalyst.json" \
-  -v "$TESTNET_PATH/nodes/$NODE_NAME/db:/nethermind/nethermind_db" \
-  -v "$TESTNET_PATH/nodes/$NODE_NAME/logs:/nethermind/logs" \
+  -v "$TESTNET_PATH/public/eth1_nethermind_config.json:/networkdata/eth1_nethermind_config.json" \
+  -v "$TESTNET_PATH/nodes/$NODE_NAME:/nethermind" \
   -itd $NETHERMIND_IMAGE \
   -c catalyst \
+  --Init.ChainSpecPath "/networkdata/eth1_nethermind_config.json" \
   --JsonRpc.Port 8501 \
   --JsonRpc.Host 0.0.0.0 \
   --Merge.BlockAuthorAccount 0x1000000000000000000000000000000000000000
@@ -222,12 +220,12 @@ NODE_NAME=teku0vc
 NODE_PATH="$TESTNET_PATH/nodes/$NODE_NAME"
 if [ -d "$NODE_PATH" ]
 then
+  echo "$NODE_NAME already has existing data"
+else
   echo "creating data for $NODE_NAME"
   mkdir -p "$NODE_PATH"
   cp -r "$TESTNET_PATH/private/validator0/teku-keys" "$NODE_PATH/keys"
   cp -r "$TESTNET_PATH/private/validator0/teku-secrets" "$NODE_PATH/secrets"
-else
-  echo "$NODE_NAME already has existing data"
 fi
 
 docker run \
@@ -242,7 +240,7 @@ docker run \
   --network "/networkdata/eth2_config.yaml" \
   --data-path "/validatordata" \
   --beacon-node-api-endpoint "http://127.0.0.1:4000" \
-  --graffiti="teku" \
+  --validators-graffiti="teku" \
   --validator-keys "/validatordata/keys:/validatordata/secrets"
 
 
@@ -252,12 +250,12 @@ NODE_NAME=lighthouse0vc
 NODE_PATH="$TESTNET_PATH/nodes/$NODE_NAME"
 if [ -d "$NODE_PATH" ]
 then
+  echo "$NODE_NAME already has existing data"
+else
   echo "creating data for $NODE_NAME"
   mkdir -p "$NODE_PATH"
   cp -r "$TESTNET_PATH/private/validator1/keys" "$NODE_PATH/keys"
   cp -r "$TESTNET_PATH/private/validator1/secrets" "$NODE_PATH/secrets"
-else
-  echo "$NODE_NAME already has existing data"
 fi
 
 docker run \
