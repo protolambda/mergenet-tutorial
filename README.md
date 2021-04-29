@@ -198,6 +198,48 @@ Customise paths and communication ports per instance:
 	--Network.P2PPort <network_p2p_port>
 ```
 
+#### Besu
+Besu requires a Java JVM.  We recommend the latest long term support version, Java 11, e.g.
+* install (linux) `sudo apt-get install openjdk-11-jdk`
+* check your java version `java --version`
+
+Download and install deps:
+```shell
+git clone https://github.com/garyschulte/besu.git clients/besu-rayonism
+cd clients/besu-rayonism
+./gradlew installDist
+cd ../..
+```
+
+Prepare chaindata:
+```shell
+mkdir -p "$TESTNET_NAME/nodes/besu0/chaindata"
+```
+
+Run:
+```shell
+clients/besu-rayonism/build/install/besu/bin/besu --data-path="./$TESTNET_NAME/nodes/besu0/chaindata" \
+     --genesis-file="./$TESTNET_NAME/public/eth1_config.json" \
+     --rpc-http-enabled --rpc-http-api=ETH,NET,CONSENSUS --Xmerge-support=true \
+     --discovery-enabled=false
+```
+
+##### Docker
+
+Use the following command to run besu from docker:
+```shell
+docker run -v "$(pwd)/$TESTNET_NAME:/testnet" -u $(id -u):$(id -g) --net host \
+  suburbandad/besu:rayonism \
+  --data-path="/testnet/nodes/besu0/chaindata" --genesis-file="/testnet/public/eth1_config.json" \
+  --rpc-http-enabled --rpc-http-api=ETH,NET,CONSENSUS --Xmerge-support=true --discovery-enabled=false
+```
+
+Note:
+- `--net host` to map container's network to the host
+- `-u $(id -u):$(id -g)` to allow for writing to the chain data folder
+- works on Linux but might require some tweaks to run it on Mac and Windows
+
+
 ### Start Eth2 beacon nodes
 
 #### Teku
