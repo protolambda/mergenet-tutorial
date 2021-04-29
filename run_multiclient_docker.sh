@@ -81,8 +81,11 @@ eth2-val-tools keystores \
   --source-max=64 \
   --source-mnemonic="$VALIDATORS_MNEMONIC"
 
-ETH1_GENESIS_TIMESTAMP=$(date +%s)
-ETH2_GENESIS_DELAY=600
+TIME_NOW=$(date +%s)
+# 60 seconds to start all containers and get them connected.
+GENESIS_DELAY=60
+ETH1_GENESIS_TIMESTAMP=$((TIME_NOW + GENESIS_DELAY))
+ETH2_GENESIS_DELAY=0
 
 echo "configuring testnet, genesis: $ETH1_GENESIS_TIMESTAMP (eth1) + $ETH2_GENESIS_DELAY (eth2 delay) = $((ETH1_GENESIS_TIMESTAMP + ETH2_GENESIS_DELAY))"
 cat > "$TESTNET_PATH/private/mergenet.yaml" << EOT
@@ -229,7 +232,7 @@ docker run \
   --testnet-yaml-config "/networkdata/eth2_config.yaml" \
   --debug-level=trace \
   beacon_node \
-  --eth1-endpoints "http://127.0.0.1/8501" \
+  --eth1-endpoints "http://127.0.0.1:8501" \
   --boot-nodes "$BOOTNODE_ENR" \
   --http \
   --http-address 0.0.0.0 \
