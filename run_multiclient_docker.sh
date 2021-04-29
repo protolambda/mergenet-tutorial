@@ -17,6 +17,7 @@ PRYSM_VALIDATOR_IMAGE=gcr.io/prysmaticlabs/prysm/validator:merge-mainnet
 NIMBUS_DOCKER_IMAGE=protolambda/nimbus:rayonism
 NETHERMIND_IMAGE=nethermind/nethermind:latest
 GETH_IMAGE=ethereum/client-go:latest
+BESU_IMAGE=suburbandad/besu:rayonism
 BOOTNODE_IMAGE=protolambda/eth2-bootnode:latest
 
 if [ "$ETH2_SPEC_VARIANT" == "minimal" ]; then
@@ -46,6 +47,7 @@ docker pull $PRYSM_VALIDATOR_IMAGE
 docker pull $NIMBUS_DOCKER_IMAGE
 docker pull $NETHERMIND_IMAGE
 docker pull $GETH_IMAGE
+docker pull $BESU_IMAGE
 docker pull $BOOTNODE_IMAGE
 
 # Create venv for scripts
@@ -198,6 +200,26 @@ docker run \
   --JsonRpc.Port 8501 \
   --JsonRpc.Host 0.0.0.0 \
   --Merge.BlockAuthorAccount 0x1000000000000000000000000000000000000000
+
+# Besu
+echo "starting besu node"
+NODE_NAME=besu0
+mkdir "$TESTNET_PATH/nodes/$NODE_NAME"
+docker run \
+  --name $NODE_NAME \
+  --net host \
+  -v "$TESTNET_PATH/public/eth1_config.json:/networkdata/eth1_config.json" \
+  -v "$TESTNET_PATH/nodes/$NODE_NAME:/besudata" \
+  -u $(id -u):$(id -g) \
+  $BESU_IMAGE \
+  --data-path="/besudata" \
+  --genesis-file="/networkdata/eth1_config.json" \
+  --rpc-http-enabled --rpc-http-api=ETH,NET,CONSENSUS \
+  --rpc-http-host=0.0.0.0 \
+  --rpc-http-port=8502 \
+  --Xmerge-support=true \
+  --discovery-enabled=false \
+  --miner-coinbase="0x1000000000000000000000000000000000000000"
 
 # Run eth2 beacon nodes
 
