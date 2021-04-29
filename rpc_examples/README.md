@@ -96,3 +96,30 @@ and understand the RPC format.
 ```
 
 > Generate this example yourself with `./consensus_newBlock.sh`
+
+## Example: `consensus_setHead`
+
+### Request
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "consensus_setHead",
+  "params": [
+    "0xc0caf8693193f5ba1e3f04368377ad63884468b13d72e4b08ade49a9e1203f6f"
+  ],
+  "id": 42
+}
+```
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 42,
+  "result": {
+    "success": true
+  }
+}
+```
