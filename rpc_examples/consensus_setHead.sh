@@ -21,6 +21,6 @@ curl \
 	POST \
 	-H "Content-Type: application/json" \
 	--data "$DATA" \
-	http://localhost:8500 \
+	http://localhost:8545 \
 	| \
 	jq
