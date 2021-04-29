@@ -7,11 +7,21 @@
 
 set -e
 
+# mainnet or minimal. For mainnet, you need `2**14` validators. For minimal just 64
+ETH2_SPEC_VARIANT=minimal
+
 LIGHTHOUSE_DOCKER_IMAGE=sigp/lighthouse:rayonism
 TEKU_DOCKER_IMAGE=mkalinin/teku:rayonism
+#PRYSM_BEACON_IMAGE=protolambda/prysm-beacon:rayonism
+#PRYSM_VALIDATOR_IMAGE=protolambda/prysm-validator:rayonism
 NETHERMIND_IMAGE=nethermind/nethermind:latest
 GETH_IMAGE=ethereum/client-go:latest
 BOOTNODE_IMAGE=protolambda/eth2-bootnode:latest
+
+#if [ "$ETH2_SPEC_VARIANT" == "minimal" ]; then
+#  PRYSM_BEACON_IMAGE=protolambda/prysm-beacon:rayonism-minimal
+#  PRYSM_VALIDATOR_IMAGE=protolambda/prysm-validator:rayonism-minimal
+#fi
 
 VALIDATORS_MNEMONIC="lumber kind orange gold firm achieve tree robust peasant april very word ordinary before treat way ivory jazz cereal debate juice evil flame sadness"
 ETH1_MNEMONIC="enforce patient ridge volume question system myself moon world glass later hello tissue east chair suspect remember check chicken bargain club exit pilot sand"
@@ -29,6 +39,8 @@ mkdir -p "$TESTNET_PATH"
 # Pull client images
 docker pull $LIGHTHOUSE_DOCKER_IMAGE
 docker pull $TEKU_DOCKER_IMAGE
+docker pull $PRYSM_BEACON_IMAGE
+docker pull $PRYSM_VALIDATOR_IMAGE
 docker pull $NETHERMIND_IMAGE
 docker pull $GETH_IMAGE
 docker pull $BOOTNODE_IMAGE
@@ -97,7 +109,7 @@ eth1_premine:
 chain_id: 700
 deposit_contract_address: "0x4242424242424242424242424242424242424242"
 # either 'minimal' or 'mainnet'
-eth2_base_config: minimal
+eth2_base_config: ${ETH2_SPEC_VARIANT}
 eth2_fork_version: "0x00000700"
 eth1_genesis_timestamp: ${ETH1_GENESIS_TIMESTAMP}
 # Tweak this. actual_genesis_timestamp = eth1_genesis_timestamp + eth2_genesis_delay
@@ -244,7 +256,25 @@ docker run \
   --port 9001
 
 # Prysm
-# TODO
+#echo "starting prysm beacon node"
+#NODE_NAME=prysm0bn
+#mkdir "$TESTNET_PATH/nodes/$NODE_NAME"
+#docker run \
+#  --name $NODE_NAME \
+#  --net host \
+#  -u $(id -u):$(id -g) \
+#  -v "$TESTNET_PATH/nodes/$NODE_NAME:/beacondata" \
+#  -v "$TESTNET_PATH/public/eth2_config.yaml:/networkdata/eth2_config.yaml" \
+#  -v "$TESTNET_PATH/public/genesis.ssz:/networkdata/genesis.ssz" \
+#  -itd $PRYSM_BEACON_IMAGE \
+#  --datadir="./$TESTNET_NAME/nodes/prysm0/beacondata" \
+#  --min-sync-peers=0 \
+#  --http-web3provider="http://127.0.0.1:8502" \
+#  --bootstrap-node="$BOOTNODE_ENR" \
+#  --chain-config-file="./$TESTNET_NAME/public/eth2_config.yaml" \
+#  --genesis-state="./$TESTNET_NAME/public/genesis.ssz"
+#  # TODO: configure p2p, api, api-gateway, metrics ports
+
 
 # Nimbus
 # TODO
