@@ -179,7 +179,7 @@ For now, Prysm provides instructions for building from source, but in the future
 Required dependencies:
 
 - UNIX operating system
-- The latest release of [Bazel](https://docs.bazel.build/versions/4.0.0/install.html) installed
+- Version 3.7.0 of [Bazel](https://docs.bazel.build/versions/3.7.0/install.html) installed
 - The `cmake` package installed
 - The git package installed
 - `libssl-dev` installed
@@ -209,7 +209,7 @@ bazel run //beacon-chain --define=ssz=minimal -- \
  --bootstrap-node= \
  --chain-config-file="./$TESTNET_NAME/public/eth2_config.yaml" \
  --genesis-state="./$TESTNET_NAME/public/genesis.ssz" \
- --force-clear-db
+ --clear-db
 ```
 
 The bootstrap node option is empty to disable any type of networking.
@@ -237,7 +237,7 @@ mkdir -p "./$TESTNET_NAME/nodes/teku0/validatordata"
 bazel run //validator --define=ssz=minimal -- \
  --wallet-dir="./$TESTNET_NAME/private/valclient0/prysm" \
  --chain-config-file="./$TESTNET_NAME/public/eth2_config.yaml" \
- --force-clear-db
+ --clear-db
 ```
 
 #### Lighthouse
