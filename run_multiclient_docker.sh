@@ -12,16 +12,18 @@ ETH2_SPEC_VARIANT=minimal
 
 LIGHTHOUSE_DOCKER_IMAGE=sigp/lighthouse:rayonism
 TEKU_DOCKER_IMAGE=mkalinin/teku:rayonism
-#PRYSM_BEACON_IMAGE=protolambda/prysm-beacon:rayonism
-#PRYSM_VALIDATOR_IMAGE=protolambda/prysm-validator:rayonism
+PRYSM_BEACON_IMAGE=gcr.io/prysmaticlabs/prysm/beacon-chain:merge-mainnet
+PRYSM_VALIDATOR_IMAGE=gcr.io/prysmaticlabs/prysm/validator:merge-mainnet
+NIMBUS_DOCKER_IMAGE=protolambda/nimbus:rayonism
 NETHERMIND_IMAGE=nethermind/nethermind:latest
 GETH_IMAGE=ethereum/client-go:latest
 BOOTNODE_IMAGE=protolambda/eth2-bootnode:latest
 
-#if [ "$ETH2_SPEC_VARIANT" == "minimal" ]; then
-#  PRYSM_BEACON_IMAGE=protolambda/prysm-beacon:rayonism-minimal
-#  PRYSM_VALIDATOR_IMAGE=protolambda/prysm-validator:rayonism-minimal
-#fi
+if [ "$ETH2_SPEC_VARIANT" == "minimal" ]; then
+  PRYSM_BEACON_IMAGE=gcr.io/prysmaticlabs/prysm/beacon-chain:merge-minimal
+  PRYSM_VALIDATOR_IMAGE=gcr.io/prysmaticlabs/prysm/validator:merge-minimal
+  NIMBUS_DOCKER_IMAGE=protolambda/nimbus:rayonism-minimal
+fi
 
 VALIDATORS_MNEMONIC="lumber kind orange gold firm achieve tree robust peasant april very word ordinary before treat way ivory jazz cereal debate juice evil flame sadness"
 ETH1_MNEMONIC="enforce patient ridge volume question system myself moon world glass later hello tissue east chair suspect remember check chicken bargain club exit pilot sand"
@@ -41,6 +43,7 @@ docker pull $LIGHTHOUSE_DOCKER_IMAGE
 docker pull $TEKU_DOCKER_IMAGE
 docker pull $PRYSM_BEACON_IMAGE
 docker pull $PRYSM_VALIDATOR_IMAGE
+docker pull $NIMBUS_DOCKER_IMAGE
 docker pull $NETHERMIND_IMAGE
 docker pull $GETH_IMAGE
 docker pull $BOOTNODE_IMAGE
@@ -124,6 +127,8 @@ python generate_eth1_conf.py "$TESTNET_PATH/private/mergenet.yaml" > "$TESTNET_P
 python generate_eth1_nethermind_conf.py "$TESTNET_PATH/private/mergenet.yaml" > "$TESTNET_PATH/public/eth1_nethermind_config.json"
 # Configure Eth2 chain
 python generate_eth2_conf.py "$TESTNET_PATH/private/mergenet.yaml" > "$TESTNET_PATH/public/eth2_config.yaml"
+# Configure nimbus
+python generate_eth2_nimbus_conf "$TESTNET_PATH/private/mergenet.yaml" > "$TESTNET_PATH/public/nimbus_config.json"
 
 echo "configuring genesis validators"
 cat > "$TESTNET_PATH/private/genesis_validators.yaml" << EOT
@@ -255,29 +260,65 @@ docker run \
   --listen-address 0.0.0.0 \
   --port 9001
 
-# Prysm
-#echo "starting prysm beacon node"
-#NODE_NAME=prysm0bn
-#mkdir "$TESTNET_PATH/nodes/$NODE_NAME"
-#docker run \
-#  --name $NODE_NAME \
-#  --net host \
-#  -u $(id -u):$(id -g) \
-#  -v "$TESTNET_PATH/nodes/$NODE_NAME:/beacondata" \
-#  -v "$TESTNET_PATH/public/eth2_config.yaml:/networkdata/eth2_config.yaml" \
-#  -v "$TESTNET_PATH/public/genesis.ssz:/networkdata/genesis.ssz" \
-#  -itd $PRYSM_BEACON_IMAGE \
-#  --datadir="./$TESTNET_NAME/nodes/prysm0/beacondata" \
-#  --min-sync-peers=0 \
-#  --http-web3provider="http://127.0.0.1:8502" \
-#  --bootstrap-node="$BOOTNODE_ENR" \
-#  --chain-config-file="./$TESTNET_NAME/public/eth2_config.yaml" \
-#  --genesis-state="./$TESTNET_NAME/public/genesis.ssz"
-#  # TODO: configure p2p, api, api-gateway, metrics ports
+# Prysm  # TODO: another eth1 node for prysm to connect to
+echo "starting prysm beacon node"
+NODE_NAME=prysm0bn
+mkdir "$TESTNET_PATH/nodes/$NODE_NAME"
+docker run \
+  --name $NODE_NAME \
+  --net host \
+  -u $(id -u):$(id -g) \
+  -v "$TESTNET_PATH/nodes/$NODE_NAME:/beacondata" \
+  -v "$TESTNET_PATH/public/eth2_config.yaml:/networkdata/eth2_config.yaml" \
+  -v "$TESTNET_PATH/public/genesis.ssz:/networkdata/genesis.ssz" \
+  -itd $PRYSM_BEACON_IMAGE \
+  --datadir="./$TESTNET_NAME/nodes/prysm0/beacondata" \
+  --min-sync-peers=0 \
+  --http-web3provider="http://127.0.0.1:8502" \
+  --bootstrap-node="$BOOTNODE_ENR" \
+  --chain-config-file="./$TESTNET_NAME/public/eth2_config.yaml" \
+  --genesis-state="./$TESTNET_NAME/public/genesis.ssz" \
+  --p2p-host-ip="127.0.0.1" \
+  --p2p-max-peers=30 \
+  --p2p-udp-port=9002 --p2p-tcp-port=9002 \
+  --monitoring-host=0.0.0.0 --monitoring-port=8002 \
+  --rpc-host=0.0.0.0 --rpc-port=4102 \
+  --grpc-gateway-host=0.0.0.0 \
+  --grpc-gateway-port=4002 \
+  --verbosity="debug" \
+  --enable-debug-rpc-endpoints \
+  --min-sync-peers 1
 
 
-# Nimbus
-# TODO
+# Nimbus # TODO: another eth1 node for nimbus to connect to
+echo "starting nimbus beacon node"
+NODE_NAME=nimbus0bn
+mkdir -p "$TESTNET_PATH/nodes/$NODE_NAME/no_bn_keys"
+mkdir -p "$TESTNET_PATH/nodes/$NODE_NAME/no_bn_secrets"
+docker run \
+  --name $NODE_NAME \
+  --net host \
+  -u $(id -u):$(id -g) \
+  -v "$TESTNET_PATH/nodes/$NODE_NAME:/beacondata" \
+  -v "$TESTNET_PATH/public/nimbus_config.json:/networkdata/nimbus_config.json" \
+  -v "$TESTNET_PATH/public/genesis.ssz:/networkdata/genesis.ssz" \
+  beacon_node \
+  --network="/networkdata/nimbus_config.json" \
+  --max-peers="{{hi_peer_count}}" \
+  --data-dir="/beacondata" \
+  --web3-url="ws://127.0.0.1:8503/ws" \
+  --bootstrap-node="$BOOTNODE_ENR" \
+  --udp-port=9003 \
+  --tcp-port=9003 \
+  --listen-address=0.0.0.0 \
+  --graffiti="nimbus" \
+  --nat="extip:127.0.0.1" \
+  --log-level="debug" \
+  --log-file="/dev/null" \
+  --rpc --rpc-port=4003 --rpc-address=0.0.0.0 \
+  --metrics --metrics-port=8003 --metrics-address=0.0.0.0 \
+  --validators-dir="/beacondata/no_bn_keys" \
+  --secrets-dir="/beacondata/no_bn_secrets"
 
 # validators
 
@@ -343,3 +384,64 @@ docker run \
   --graffiti="lighthouse" \
   --validators-dir "/validatordata/keys" \
   --secrets-dir "/validatordata/secrets"
+
+# Prysm
+echo "starting Prysm validator client"
+NODE_NAME=prysm0vc
+NODE_PATH="$TESTNET_PATH/nodes/$NODE_NAME"
+if [ -d "$NODE_PATH" ]
+then
+  echo "$NODE_NAME already has existing data"
+else
+  echo "creating data for $NODE_NAME"
+  mkdir -p "$NODE_PATH"
+  cp -r "$TESTNET_PATH/private/validator2/prysm" "$NODE_PATH/wallet"
+  echo -n "$PRYSM_BULK_KEYSTORE_PASS" > "$NODE_PATH/wallet_pass.txt"
+fi
+
+docker run \
+  --name $NODE_NAME \
+  --net host \
+  -u $(id -u):$(id -g) \
+  -v "$TESTNET_PATH/nodes/$NODE_NAME:/validatordata" \
+  -v "$TESTNET_PATH/public/eth2_config.yaml:/networkdata/eth2_config.yaml" \
+  -itd $PRYSM_VALIDATOR_IMAGE \
+  --accept-terms-of-use=true \
+  --datadir="/validatordata" \
+  --chain-config-file="/networkdata/eth2_config.yaml" \
+  --beacon-rpc-provider=localhost:4102 \
+  --graffiti="prysm" \
+  --monitoring-host=0.0.0.0 --monitoring-port=8102 \
+  --wallet-dir=/validatordata/wallet \
+  --wallet-password-file="/validatordata/wallet_pass.txt"
+
+# Nimbus
+echo "starting Nimbus validator client"
+NODE_NAME=nimbus0vc
+NODE_PATH="$TESTNET_PATH/nodes/$NODE_NAME"
+if [ -d "$NODE_PATH" ]
+then
+  echo "$NODE_NAME already has existing data"
+else
+  echo "creating data for $NODE_NAME"
+  mkdir -p "$NODE_PATH"
+  cp -r "$TESTNET_PATH/private/validator3/nimbus-keys" "$NODE_PATH/keys"
+  cp -r "$TESTNET_PATH/private/validator3/secrets" "$NODE_PATH/secrets"
+fi
+
+docker run \
+  --name $NODE_NAME \
+  --net host \
+  -u $(id -u):$(id -g) \
+  -v "$TESTNET_PATH/nodes/$NODE_NAME:/validatordata" \
+  -itd $NIMBUS_DOCKER_IMAGE \
+  validator_client \
+  --log-level="debug" \
+  --log-file="/dev/null" \
+  --data-dir="/validatordata" \
+  --non-interactive=true \
+  --graffiti="nimbus" \
+  --rpc-port=4003 \
+  --rpc-address=127.0.0.1 \
+  --validators-dir="/validatordata/keys" \
+  --secrets-dir="/validatordata/secrets"
