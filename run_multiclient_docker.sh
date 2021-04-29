@@ -20,6 +20,9 @@ GETH_IMAGE=ethereum/client-go:latest
 BESU_IMAGE=suburbandad/besu:rayonism
 BOOTNODE_IMAGE=protolambda/eth2-bootnode:latest
 
+# TODO: not yet working
+NIMBUS_ENABLED=0
+
 if [ "$ETH2_SPEC_VARIANT" == "minimal" ]; then
   PRYSM_BEACON_IMAGE=gcr.io/prysmaticlabs/prysm/beacon-chain:merge-minimal
   PRYSM_VALIDATOR_IMAGE=gcr.io/prysmaticlabs/prysm/validator:merge-minimal
@@ -88,15 +91,24 @@ eth2-val-tools keystores \
   --out-loc "$TESTNET_PATH/private/validator0" \
   --prysm-pass="$PRYSM_BULK_KEYSTORE_PASS" \
   --source-min=0 \
-  --source-max=32 \
+  --source-max=22 \
   --source-mnemonic="$VALIDATORS_MNEMONIC"
 
 eth2-val-tools keystores \
   --out-loc "$TESTNET_PATH/private/validator1" \
   --prysm-pass="$PRYSM_BULK_KEYSTORE_PASS" \
-  --source-min=32 \
+  --source-min=22 \
+  --source-max=44 \
+  --source-mnemonic="$VALIDATORS_MNEMONIC"
+
+eth2-val-tools keystores \
+  --out-loc "$TESTNET_PATH/private/validator2" \
+  --prysm-pass="$PRYSM_BULK_KEYSTORE_PASS" \
+  --source-min=44 \
   --source-max=64 \
   --source-mnemonic="$VALIDATORS_MNEMONIC"
+
+# TODO: split in 4 instead, so nimbus can have keys.
 
 TIME_NOW=$(date +%s)
 # 60 seconds to start all containers and get them connected.
@@ -311,36 +323,37 @@ docker run \
   --enable-debug-rpc-endpoints \
   --min-sync-peers 1
 
-
-# Nimbus # TODO: another eth1 node for nimbus to connect to
-echo "starting nimbus beacon node"
-NODE_NAME=nimbus0bn
-mkdir -p "$TESTNET_PATH/nodes/$NODE_NAME/no_bn_keys"
-mkdir -p "$TESTNET_PATH/nodes/$NODE_NAME/no_bn_secrets"
-docker run \
-  --name $NODE_NAME \
-  --net host \
-  -u $(id -u):$(id -g) \
-  -v "$TESTNET_PATH/nodes/$NODE_NAME:/beacondata" \
-  -v "$TESTNET_PATH/public/nimbus_config.json:/networkdata/nimbus_config.json" \
-  -v "$TESTNET_PATH/public/genesis.ssz:/networkdata/genesis.ssz" \
-  beacon_node \
-  --network="/networkdata/nimbus_config.json" \
-  --max-peers="{{hi_peer_count}}" \
-  --data-dir="/beacondata" \
-  --web3-url="ws://127.0.0.1:8503/ws" \
-  --bootstrap-node="$BOOTNODE_ENR" \
-  --udp-port=9003 \
-  --tcp-port=9003 \
-  --listen-address=0.0.0.0 \
-  --graffiti="nimbus" \
-  --nat="extip:127.0.0.1" \
-  --log-level="debug" \
-  --log-file="/dev/null" \
-  --rpc --rpc-port=4003 --rpc-address=0.0.0.0 \
-  --metrics --metrics-port=8003 --metrics-address=0.0.0.0 \
-  --validators-dir="/beacondata/no_bn_keys" \
-  --secrets-dir="/beacondata/no_bn_secrets"
+if [ $NIMBUS_ENABLED ]; then
+  # Nimbus # TODO: another eth1 node for nimbus to connect to, with websocket RPC exposed (nimbus doesn't support http rpc for eth1 connection)
+  echo "starting nimbus beacon node"
+  NODE_NAME=nimbus0bn
+  mkdir -p "$TESTNET_PATH/nodes/$NODE_NAME/no_bn_keys"
+  mkdir -p "$TESTNET_PATH/nodes/$NODE_NAME/no_bn_secrets"
+  docker run \
+    --name $NODE_NAME \
+    --net host \
+    -u $(id -u):$(id -g) \
+    -v "$TESTNET_PATH/nodes/$NODE_NAME:/beacondata" \
+    -v "$TESTNET_PATH/public/nimbus_config.json:/networkdata/nimbus_config.json" \
+    -v "$TESTNET_PATH/public/genesis.ssz:/networkdata/genesis.ssz" \
+    beacon_node \
+    --network="/networkdata/nimbus_config.json" \
+    --max-peers="{{hi_peer_count}}" \
+    --data-dir="/beacondata" \
+    --web3-url="ws://127.0.0.1:8503/ws" \
+    --bootstrap-node="$BOOTNODE_ENR" \
+    --udp-port=9003 \
+    --tcp-port=9003 \
+    --listen-address=0.0.0.0 \
+    --graffiti="nimbus" \
+    --nat="extip:127.0.0.1" \
+    --log-level="debug" \
+    --log-file="/dev/null" \
+    --rpc --rpc-port=4003 --rpc-address=0.0.0.0 \
+    --metrics --metrics-port=8003 --metrics-address=0.0.0.0 \
+    --validators-dir="/beacondata/no_bn_keys" \
+    --secrets-dir="/beacondata/no_bn_secrets"
+fi
 
 # validators
 
@@ -438,32 +451,34 @@ docker run \
   --wallet-password-file="/validatordata/wallet_pass.txt"
 
 # Nimbus
-echo "starting Nimbus validator client"
-NODE_NAME=nimbus0vc
-NODE_PATH="$TESTNET_PATH/nodes/$NODE_NAME"
-if [ -d "$NODE_PATH" ]
-then
-  echo "$NODE_NAME already has existing data"
-else
-  echo "creating data for $NODE_NAME"
-  mkdir -p "$NODE_PATH"
-  cp -r "$TESTNET_PATH/private/validator3/nimbus-keys" "$NODE_PATH/keys"
-  cp -r "$TESTNET_PATH/private/validator3/secrets" "$NODE_PATH/secrets"
-fi
+if [ $NIMBUS_ENABLED ]; then  # TODO enable nimbus
+  echo "starting Nimbus validator client"
+  NODE_NAME=nimbus0vc
+  NODE_PATH="$TESTNET_PATH/nodes/$NODE_NAME"
+  if [ -d "$NODE_PATH" ]
+  then
+    echo "$NODE_NAME already has existing data"
+  else
+    echo "creating data for $NODE_NAME"
+    mkdir -p "$NODE_PATH"
+    cp -r "$TESTNET_PATH/private/validator3/nimbus-keys" "$NODE_PATH/keys"
+    cp -r "$TESTNET_PATH/private/validator3/secrets" "$NODE_PATH/secrets"
+  fi
 
-docker run \
-  --name $NODE_NAME \
-  --net host \
-  -u $(id -u):$(id -g) \
-  -v "$TESTNET_PATH/nodes/$NODE_NAME:/validatordata" \
-  -itd $NIMBUS_DOCKER_IMAGE \
-  validator_client \
-  --log-level="debug" \
-  --log-file="/dev/null" \
-  --data-dir="/validatordata" \
-  --non-interactive=true \
-  --graffiti="nimbus" \
-  --rpc-port=4003 \
-  --rpc-address=127.0.0.1 \
-  --validators-dir="/validatordata/keys" \
-  --secrets-dir="/validatordata/secrets"
+  docker run \
+    --name $NODE_NAME \
+    --net host \
+    -u $(id -u):$(id -g) \
+    -v "$TESTNET_PATH/nodes/$NODE_NAME:/validatordata" \
+    -itd $NIMBUS_DOCKER_IMAGE \
+    validator_client \
+    --log-level="debug" \
+    --log-file="/dev/null" \
+    --data-dir="/validatordata" \
+    --non-interactive=true \
+    --graffiti="nimbus" \
+    --rpc-port=4003 \
+    --rpc-address=127.0.0.1 \
+    --validators-dir="/validatordata/keys" \
+    --secrets-dir="/validatordata/secrets"
+fi
