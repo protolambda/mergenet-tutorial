@@ -372,7 +372,7 @@ bazel build //validator:validator
 Run the beacon node
 
 ```shell
-bazel run //beacon-chain --define=ssz=minimal -- \
+bazel run //beacon-chain -- \
  --datadir="./$TESTNET_NAME/nodes/prysm0/beacondata" \
  --min-sync-peers=0 \
  --http-web3provider=http://127.0.0.1:8545 \
@@ -404,7 +404,7 @@ mkdir -p "./$TESTNET_NAME/nodes/teku0/validatordata"
 #### Prysm
 
 ```shell
-bazel run //validator --define=ssz=minimal -- \
+bazel run //validator -- \
  --wallet-dir="./$TESTNET_NAME/private/valclient0/prysm" \
  --chain-config-file="./$TESTNET_NAME/public/eth2_config.yaml" \
  --clear-db
