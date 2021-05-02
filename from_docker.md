@@ -107,7 +107,9 @@ docker run \
 nethermind/nethermind:latest
 ```
 #### Generate config
-```
+
+```shell
+# Inside your setupenv, run
 python generate_eth1_nethermind_conf.py > "$TESTNET_NAME/public/eth1_nethermind_config.json"
 ```
 
