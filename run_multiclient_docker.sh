@@ -20,12 +20,14 @@ GETH_IMAGE=ethereum/client-go:latest
 BESU_IMAGE=suburbandad/besu:rayonism
 BOOTNODE_IMAGE=protolambda/eth2-bootnode:latest
 
-# TODO: not yet working
+# TODO: not yet working. Nimbus requires custom docker builds for testnet configuration changes
+# (need a nimbus dev to look at this)
 NIMBUS_ENABLED=0
 
 if [ "$ETH2_SPEC_VARIANT" == "minimal" ]; then
   PRYSM_BEACON_IMAGE=gcr.io/prysmaticlabs/prysm/beacon-chain:merge-minimal
   PRYSM_VALIDATOR_IMAGE=gcr.io/prysmaticlabs/prysm/validator:merge-minimal
+  # TODO: failed attempt at nimbus minimal build. Need to try configure testnet for minimal-mode config outside of docker.
   NIMBUS_DOCKER_IMAGE=protolambda/nimbus:rayonism-minimal
 fi
 
@@ -429,8 +431,9 @@ then
   echo "$NODE_NAME already has existing data"
 else
   echo "creating data for $NODE_NAME"
-  mkdir -p "$NODE_PATH"
-  cp -r "$TESTNET_PATH/private/validator2/prysm" "$NODE_PATH/wallet"
+  mkdir -p "$NODE_PATH/wallet/direct/accounts"
+  cp "$TESTNET_PATH/private/validator2/prysm/all-accounts.keystore.json" "$NODE_PATH/wallet/direct/accounts/all-accounts.keystore.json"
+  cp "$TESTNET_PATH/private/validator2/prysm/keymanageropts.json" "$NODE_PATH/wallet/direct/keymanageropts.json"
   echo -n "$PRYSM_BULK_KEYSTORE_PASS" > "$NODE_PATH/wallet_pass.txt"
 fi
 
