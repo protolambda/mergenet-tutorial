@@ -143,8 +143,6 @@ python generate_eth1_conf.py "$TESTNET_PATH/private/mergenet.yaml" > "$TESTNET_P
 python generate_eth1_nethermind_conf.py "$TESTNET_PATH/private/mergenet.yaml" > "$TESTNET_PATH/public/eth1_nethermind_config.json"
 # Configure Eth2 chain
 python generate_eth2_conf.py "$TESTNET_PATH/private/mergenet.yaml" > "$TESTNET_PATH/public/eth2_config.yaml"
-# Configure nimbus
-python generate_eth2_nimbus_conf "$TESTNET_PATH/private/mergenet.yaml" > "$TESTNET_PATH/public/nimbus_config.json"
 
 echo "configuring genesis validators"
 cat > "$TESTNET_PATH/private/genesis_validators.yaml" << EOT
