@@ -173,6 +173,12 @@ docker run \
 #### Running the validator:
 
 ```shell
+# prepare keys
+NODE_PATH="$TESTNET_PATH/nodes/teku0vc"
+mkdir -p "$NODE_PATH"
+cp -r "$TESTNET_PATH/private/validator0/teku-keys" "$NODE_PATH/keys"
+cp -r "$TESTNET_PATH/private/validator0/teku-secrets" "$NODE_PATH/secrets"
+
 docker run \
   --name teku0vc \
   -u $(id -u):$(id -g) --net host \
@@ -229,10 +235,15 @@ docker run \
   # --enr-address=1.2.3.4
 ```
 
-
 #### Running the validator:
 
 ```shell
+# prepare keys
+NODE_PATH="$TESTNET_PATH/nodes/lighthouse0vc"
+mkdir -p "$NODE_PATH"
+cp -r "$TESTNET_PATH/private/validator0/keys" "$NODE_PATH/keys"
+cp -r "$TESTNET_PATH/private/validator0/secrets" "$NODE_PATH/secrets"
+
 docker run \
   --name lighthouse0vc \
   -u $(id -u):$(id -g) --net host \
@@ -300,6 +311,13 @@ docker run \
 #### Running the validator:
 
 ```shell
+# prepare keys
+NODE_PATH="$TESTNET_PATH/nodes/prysm0vc"
+mkdir -p "$NODE_PATH/wallet/direct/accounts"
+cp "$TESTNET_PATH/private/validator0/prysm/all-accounts.keystore.json" "$NODE_PATH/wallet/direct/accounts/all-accounts.keystore.json"
+cp "$TESTNET_PATH/private/validator0/prysm/keymanageropts.json" "$NODE_PATH/wallet/direct/keymanageropts.json"
+echo -n "bulkpasshere" > "$NODE_PATH/wallet_pass.txt"
+
 docker run \
   --name prysm0vc \
   -u $(id -u):$(id -g) --net host \
@@ -377,6 +395,12 @@ Note: websocket eth1 connections only.
 Note: nimbus validators fetch the spec config from the beacon node
 
 ```shell
+# prepare keys
+NODE_PATH="$TESTNET_PATH/nodes/nimbus0vc"
+mkdir -p "$NODE_PATH"
+cp -r "$TESTNET_PATH/private/validator0/nimbus-keys" "$NODE_PATH/keys"
+cp -r "$TESTNET_PATH/private/validator0/secrets" "$NODE_PATH/secrets"
+
 docker run \
   --name nimbus0vc \
   -u $(id -u):$(id -g) --net host \
