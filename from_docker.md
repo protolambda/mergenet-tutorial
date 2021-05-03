@@ -151,8 +151,7 @@ docker run \
   --network "/networkdata/eth2_config.yaml" \
   --data-path "/beacondata" \
   --p2p-enabled=true \
-  # optional: --p2p-advertised-ip=1.2.3.4 \
-  --logging=info \
+  --logging=debug \
   --initial-state "/networkdata/genesis.ssz" \
   --eth1-endpoint "http://localhost:8545" \
   --p2p-discovery-bootnodes "COMMA_SEPARATED_ENRS_HERE" \
@@ -167,6 +166,8 @@ docker run \
   --metrics-host-allowlist="*" \
   --rest-api-host-allowlist="*" \
   --Xdata-storage-non-canonical-blocks-enabled=true
+  # optional:
+  # --p2p-advertised-ip=1.2.3.4
 ```
 
 #### Running the validator:
@@ -199,53 +200,54 @@ sigp/lighthouse:rayonism
 #### Running the beacon node:
 
 ```shell
-# TODO
-  - "{{beacon_node_dir}}:/beacondata"
-  - "{{testnet_dir}}/eth2_config.yaml:/networkdata/eth2_config.yaml"
-  - "{{testnet_dir}}/genesis.ssz:/networkdata/genesis.ssz"
-
-
-  lighthouse
-  --datadir "/beacondata"
-  --testnet-deposit-contract-deploy-block 0
-  --testnet-genesis-state "/networkdata/genesis.ssz"
-  --testnet-yaml-config "/networkdata/eth2_config.yaml"
-  --debug-level={{beacon_log_level}}
-  beacon_node
-  --enr-address={{public_ip_address}}
-  --enr-tcp-port={{beacon_p2p_port}} --enr-udp-port={{beacon_p2p_port}}
-  --port={{beacon_p2p_port}} --discovery-port={{beacon_p2p_port}}
-  --eth1-endpoints "{{eth1endpoint}}"
-  --boot-nodes "{{ bootnode_enrs | join(',') }}"
-  --http
-  --http-address 0.0.0.0
-  --http-port "{{beacon_api_port}}"
-  --metrics
-  --metrics-address 0.0.0.0
-  --metrics-port "{{beacon_metrics_port}}"
+docker run \
+  --name lighthouse0bn \
+  -u $(id -u):$(id -g) --net host \
+  -v ${PWD}/$TESTNET_NAME/nodes/lighthouse0bn:/beacondata \
+  -v ${PWD}/$TESTNET_NAME/public/eth2_config.yaml:/networkdata/eth2_config.yaml \
+  -v ${PWD}/$TESTNET_NAME/public/genesis.ssz:/networkdata/genesis.ssz \
+  sigp/lighthouse:rayonism \
+  lighthouse \
+  --datadir "/beacondata" \
+  --testnet-deposit-contract-deploy-block 0 \
+  --testnet-genesis-state "/networkdata/genesis.ssz" \
+  --testnet-yaml-config "/networkdata/eth2_config.yaml" \
+  --debug-level=debug \
+  beacon_node \
+  --enr-tcp-port=9000 --enr-udp-port=9000 \
+  --port=9000 --discovery-port=9000 \
+  --eth1-endpoints "http://localhost:8545" \
+  --boot-nodes "COMMA_SEPARATED_ENRS_HERE" \
+  --http \
+  --http-address 0.0.0.0 \
+  --http-port "4000" \
+  --metrics \
+  --metrics-address 0.0.0.0 \
+  --metrics-port "8000" \
   --listen-address 0.0.0.0
+  # optional:
+  # --enr-address=1.2.3.4
 ```
 
 
 #### Running the validator:
 
 ```shell
-# TODO
-
-  - "{{validator_node_dir}}:/validatordata"
-  - "{{testnet_dir}}/eth2_config.yaml:/networkdata/eth2_config.yaml"
-  - "{{testnet_dir}}/genesis.ssz:/networkdata/genesis.ssz"
-
-
-  lighthouse
-  --testnet-deposit-contract-deploy-block 0
-  --testnet-genesis-state "/networkdata/genesis.ssz"
-  --testnet-yaml-config "/networkdata/eth2_config.yaml"
-  validator_client
-  --init-slashing-protection
-  --beacon-nodes "{{beacon_endpoint}}"
-  --graffiti="{{graffiti}}"
-  --validators-dir "/validatordata/keys"
+docker run \
+  --name lighthouse0vc \
+  -u $(id -u):$(id -g) --net host \
+  -v ${PWD}/$TESTNET_NAME/nodes/lighthouse0vc:/validatordata \
+  -v ${PWD}/$TESTNET_NAME/public/eth2_config.yaml:/networkdata/eth2_config.yaml \
+  sigp/lighthouse:rayonism \
+  lighthouse \
+  --testnet-deposit-contract-deploy-block 0 \
+  --testnet-genesis-state "/networkdata/genesis.ssz" \
+  --testnet-yaml-config "/networkdata/eth2_config.yaml" \
+  validator_client \
+  --init-slashing-protection \
+  --beacon-nodes "http://localhost:4000" \
+  --graffiti="hello" \
+  --validators-dir "/validatordata/keys" \
   --secrets-dir "/validatordata/secrets"
 ```
 
@@ -267,50 +269,49 @@ gcr.io/prysmaticlabs/prysm/validator:merge-minimal
 #### Running the beacon node:
 
 ```shell
-# TODO
-
-  - "{{beacon_node_dir}}:/beacondata"
-  - "{{testnet_dir}}/eth2_config.yaml:/networkdata/eth2_config.yaml"
-  - "{{testnet_dir}}/genesis.ssz:/networkdata/genesis.ssz"
-
-
-  --accept-terms-of-use=true
-  --datadir="/beacondata"
-  --min-sync-peers=0
-  --http-web3provider="{{eth1endpoint}}"
-  {% for bootnode_enr in bootnode_enrs %}
-  --bootstrap-node="{{ bootnode_enr }}"
-  {% endfor %}
-  --chain-config-file="/networkdata/eth2_config.yaml"
-  --genesis-state="/networkdata/genesis.ssz"
-  --verbosity={{beacon_log_level}}
-  --p2p-host-ip={{public_ip_address}}
-  --p2p-max-peers=30
-  --p2p-udp-port={{beacon_p2p_port}} --p2p-tcp-port={{beacon_p2p_port}}
-  --monitoring-host=0.0.0.0 --monitoring-port={{beacon_metrics_port}}
-  --rpc-host=0.0.0.0 --rpc-port={{beacon_grpc_port}}
-  --grpc-gateway-host=0.0.0.0
-  --grpc-gateway-port={{beacon_api_port}}
-  --verbosity="debug"
-  --enable-debug-rpc-endpoints
+docker run \
+  --name prysm0bn \
+  -u $(id -u):$(id -g) --net host \
+  -v ${PWD}/$TESTNET_NAME/nodes/prysm0bn:/beacondata \
+  -v ${PWD}/$TESTNET_NAME/public/eth2_config.yaml:/networkdata/eth2_config.yaml \
+  -v ${PWD}/$TESTNET_NAME/public/genesis.ssz:/networkdata/genesis.ssz \
+  gcr.io/prysmaticlabs/prysm/beacon-chain:merge-minimal \
+  --accept-terms-of-use=true \
+  --datadir="/beacondata" \
+  --min-sync-peers=0 \
+  --http-web3provider="http://localhost:8545" \
+  --bootstrap-node="REPEAT_THIS_FLAG_TO_ADD_EVERY_ENR" \
+  --chain-config-file="/networkdata/eth2_config.yaml" \
+  --genesis-state="/networkdata/genesis.ssz" \
+  --verbosity=debug \
+  --p2p-max-peers=30 \
+  --p2p-udp-port=9000 --p2p-tcp-port=9000 \
+  --monitoring-host=0.0.0.0 --monitoring-port=8000 \
+  --rpc-host=0.0.0.0 --rpc-port=4001 \
+  --grpc-gateway-host=0.0.0.0 \
+  --grpc-gateway-port=4000 \
+  --verbosity="debug" \
+  --enable-debug-rpc-endpoints \
   --min-sync-peers 1
+  # Optional:
+  # --p2p-host-ip=1.2.3.4
 ```
 
 #### Running the validator:
 
 ```shell
-# TODO
-
-  - "{{validator_node_dir}}:/validatordata"
-  - "{{testnet_dir}}/eth2_config.yaml:/networkdata/eth2_config.yaml"
-
-
-  --accept-terms-of-use=true
-  --datadir="/validatordata"
-  --chain-config-file="/networkdata/eth2_config.yaml"
-  --beacon-rpc-provider={{beacon_endpoint}}
-  --graffiti="{{graffiti}}"
-  --wallet-dir=/validatordata/wallet
+docker run \
+  --name prysm0vc \
+  -u $(id -u):$(id -g) --net host \
+  -v ${PWD}/$TESTNET_NAME/nodes/prysm0vc:/validatordata \
+  -v ${PWD}/$TESTNET_NAME/public/eth2_config.yaml:/networkdata/eth2_config.yaml \
+  gcr.io/prysmaticlabs/prysm/validator:merge-minimal \
+  --accept-terms-of-use=true \
+  --datadir="/validatordata" \
+  --chain-config-file="/networkdata/eth2_config.yaml" \
+  --beacon-rpc-provider="127.0.0.1:4001" \
+  --graffiti="hello" \
+  --wallet-dir=/validatordata/wallet \
   --wallet-password-file="/validatordata/pass.txt"
 ```
 
@@ -335,51 +336,64 @@ Or compile them yourself with https://github.com/protolambda/nimbus-docker/ (not
 #### Running the beacon node:
 
 ```shell
-# TODO
-
-  - "{{beacon_node_dir}}:/beacondata"
-
-  beacon_node
-  --network=steklo
-  --max-peers="60"
-  --data-dir="/beacondata"
-  --web3-url="{{eth1endpoint_ws}}"
-  {% for bootnode_enr in bootnode_enrs %}
-  --bootstrap-node="{{ bootnode_enr }}"
-  {% endfor %}
-  --udp-port={{beacon_p2p_port}}
-  --tcp-port={{beacon_p2p_port}}
-  --listen-address=0.0.0.0
-  --graffiti="{{graffiti}}"
-  --nat="extip:{{public_ip_address}}"
-  --enr-auto-update=false
-  --log-level="{{beacon_log_level}}"
+docker run \
+  --name nimbus0bn \
+  -u $(id -u):$(id -g) --net host \
+  -v ${PWD}/$TESTNET_NAME/nodes/nimbus0bn:/beacondata \
+  -v ${PWD}/$TESTNET_NAME/public/eth2_config.yaml:/networkdata/eth2_config.yaml \
+  -v ${PWD}/$TESTNET_NAME/public/genesis.ssz:/networkdata/genesis.ssz \
+  protolambda/nimbus:rayonism-minimal \
+  beacon_node \
+  --network=TODO \
+  --max-peers="60" \
+  --data-dir="/beacondata" \
+  --web3-url="ws://localhost:8546" \
+  --bootstrap-node="REPEAT_THIS_FLAG_TO_ADD_EVERY_ENR" \
+  --udp-port=9000 \
+  --tcp-port=9000 \
+  --listen-address=0.0.0.0 \
+  --graffiti="hello" \
+  --enr-auto-update=false \
+  --log-level="debug" \
+  --log-file="/dev/null" \
+  --rpc --rpc-port=4001 --rpc-address=0.0.0.0 \
+  --rest --rest-port=4000 --rpc-address=0.0.0.0 \
+  --metrics --metrics-port=8000 --metrics-address=0.0.0.0 \
   --log-file="/dev/null"
-  --rpc --rpc-port={{nimbus_rpc_port}} --rpc-address=0.0.0.0
-  --rest --rest-port={{beacon_api_port}} --rpc-address=0.0.0.0
-  --metrics --metrics-port={{beacon_metrics_port}} --metrics-address=0.0.0.0
-  --log-level="{{ beacon_log_level | upper }}"
-  --log-file="/dev/null"
+# optional:
+# --nat="extip:1.2.3.4"
 ```
+
+Note: local network configuration is undocumented and does not work out of the box.
+May require custom docker image.
+
+Note: websocket eth1 connections only.
+- `ws://127.0.0.1:8546` for geth
+- `ws://127.0.0.1:8546/ws` for besu
+- `http://127.0.0.1:8546` (upgrades to websocket) for nethermind
 
 #### Running the validator:
 
 Note: nimbus validators fetch the spec config from the beacon node
 
 ```shell
-# TODO
-
-  - "{{validator_node_dir}}:/validatordata"
-
-  validator_client
-  --log-level="debug"
-  --log-file="/dev/null"
-  --data-dir="/validatordata"
-  --non-interactive=true
-  --graffiti="{{graffiti}}"
-  --rpc-port={{nimbus_rpc_port}}
-  --rpc-address=127.0.0.1
-  --validators-dir="/validatordata/keys"
+docker run \
+  --name nimbus0vc \
+  -u $(id -u):$(id -g) --net host \
+  -v ${PWD}/$TESTNET_NAME/nodes/nimbus0vc:/validatordata \
+  -v ${PWD}/$TESTNET_NAME/public/eth2_config.yaml:/networkdata/eth2_config.yaml \
+  protolambda/nimbus:rayonism-minimal \
+  validator_client \
+  --log-level="debug" \
+  --log-file="/dev/null" \
+  --data-dir="/validatordata" \
+  --non-interactive=true \
+  --graffiti="hello" \
+  --rpc-port=4001 \
+  --rpc-address=127.0.0.1 \
+  --validators-dir="/validatordata/keys" \
   --secrets-dir="/validatordata/secrets"
 ```
 
+Note: Nimbus exposes both a JSON-RPC and REST-API endpoint.
+The validator client still uses JSON-RPC, although the standard is REST-API.
