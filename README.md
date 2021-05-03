@@ -346,15 +346,6 @@ cd ../..
 
 For now, Prysm provides instructions for building from source, but in the future can provide binaries and Docker containers for the merge testnet.
 
-Required dependencies:
-
-- UNIX operating system
-- Version 3.7.0 of [Bazel](https://docs.bazel.build/versions/3.7.0/install.html) installed
-- The `cmake` package installed
-- The git package installed
-- `libssl-dev` installed
-- `libgmp-dev` installed 
-- `libtinfo5` installed
 
 Then, clone the repo and checkout the branch
 

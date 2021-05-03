@@ -95,12 +95,19 @@ cd teku
 
 ### Prerequisites
 
-1. Install go 1.16+
-2. Install Bazel 3.7 (warning, older than latest bazel 4). Use bazelisk to install bazel.
-   - See https://github.com/bazelbuild/bazelisk/blob/master/README.md
-   - Alias bazelisk to bazel
-3. Work around LLVM build issue (warning: no success here so far). https://github.com/prysmaticlabs/prysm/issues/8072
-4. If you want to build docker images, patch bazel workspace with https://github.com/bazelbuild/rules_docker/releases/tag/v0.17.0
+1. General toolchain requirements:
+   - UNIX operating system
+   - The `cmake` package installed
+   - The git package installed
+   - `libssl-dev` installed
+   - `libgmp-dev` installed
+   - `libtinfo5` installed
+2. Install go 1.16+
+3. Install Bazel 3.7 (warning, older than latest bazel 4).
+   - [Install instructions for Bazel](https://docs.bazel.build/versions/3.7.0/install.html)
+   - For bazel multi-version usage with bazelisk, see https://github.com/bazelbuild/bazelisk/blob/master/README.md
+4. If building an older prysm branch, [work around LLVM build issue](https://github.com/prysmaticlabs/prysm/issues/8072), [Fixed here](https://github.com/prysmaticlabs/prysm/pull/8839)
+5. If you want to build docker images, you may need to patch bazel workspace with https://github.com/bazelbuild/rules_docker/releases/tag/v0.17.0
    See https://github.com/bazelbuild/rules_docker/issues/1814 for context.
 
 ### Build
@@ -129,7 +136,11 @@ docker tag gcr.io/prysmaticlabs/prysm/validator:latest protolambda/prysm-validat
 
 ### Run
 
-TODO
+When running with bazel:
+```shell
+bazel run //beacon-chain -- --options-here
+```
+Or run the created docker image.
 
 ----
 
