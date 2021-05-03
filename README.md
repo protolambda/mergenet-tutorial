@@ -137,13 +137,7 @@ python generate_eth1_nethermind_conf.py > "$TESTNET_NAME/public/eth1_nethermind_
 
 Use the following command to run Nethermind from docker:
 ```shell
-docker run \
-  --name nethermind \
-  -p 8545:8545 \
-  -v ${PWD}/$TESTNET_NAME/public/eth1_nethermind_config.json:/nethermind/chainspec/catalyst.json \
-  -v ${PWD}/$TESTNET_NAME/nodes/nethermind0/db:/nethermind/nethermind_db \
-  -v ${PWD}/$TESTNET_NAME/nodes/nethermind0/logs:/nethermind/logs \
-  -itd nethermind/nethermind \
+
   -c catalyst \
   --JsonRpc.Port 8545 \
   --JsonRpc.Host 0.0.0.0 \

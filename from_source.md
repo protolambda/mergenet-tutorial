@@ -6,6 +6,7 @@ This doc describes how to build every client from source.
 This guide assumes a Linux or MacOS install.
 For Windows, please refer to the build instructions by the client (if compatible with windows at all).
 
+For instructions how to use the CLI arguments of the nodes, see the [Docker tutorial](./from_docker.md). 
 
 ## Geth
 
