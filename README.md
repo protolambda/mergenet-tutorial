@@ -8,8 +8,9 @@ Note: *Python (incl. `python-dev`) and Go (1.16+) standard installs assumed*
 
 ```shell
 # Create, start and install python venv
-python -m venv venv 
-. venv/bin/activate
+python -m venv venv
+chmod +x venv/bin/activate
+./venv/bin/activate
 pip install -r requirements.txt
 
 # Install eth2-testnet-genesis tool (Go 1.16+ required)
