@@ -32,6 +32,20 @@ go build -o ./build/bin/catalyst ./cmd/geth
 go install ./cmd/geth
 ```
 
+### Initialize
+
+To run a custom testnet, Geth needs to initialize its storage and configuration.
+Run the `geth --catalyst init` command to initialize.
+See [docker instructions](./from_docker.md#initialization) for details.
+
+### Run
+
+```shell
+./build/bin/catalyst --options-here
+# Or, when installed globally as regular geth executable:
+geth --options-here
+```
+
 ----
 
 ## Nethermind
