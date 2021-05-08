@@ -45,6 +45,7 @@ docker run \
   --rpc-http-enabled --rpc-http-api=ETH,NET,CONSENSUS \
   --rpc-http-host=0.0.0.0 \
   --rpc-http-port=8545 \
+  --rpc-http-cors-origins="*" \
   --rpc-ws-enabled --rpc-ws-api=ETH,NET,CONSENSUS \
   --rpc-ws-host=0.0.0.0 \
   --rpc-ws-port=8546 \

@@ -190,6 +190,10 @@ docker run \
   --http --http.api net,eth,consensus \
   --http.port 8500 \
   --http.addr 0.0.0.0 \
+  --http.corsdomain "*" \
+  --ws --ws.api net,eth,consensus \
+  --ws.port 8600 \
+  --ws.addr 0.0.0.0 \
   --nodiscover \
   --miner.etherbase 0x1000000000000000000000000000000000000000 \
   --datadir "/gethdata/chaindata"
@@ -209,7 +213,9 @@ docker run \
   -c catalyst \
   --datadir "/netherminddata" \
   --Init.ChainSpecPath "/networkdata/eth1_nethermind_config.json" \
+  --Init.WebSocketsEnabled true \
   --JsonRpc.Port 8501 \
+  --JsonRpc.WebSocketsPort 8601 \
   --JsonRpc.Host 0.0.0.0 \
   --Merge.BlockAuthorAccount 0x1000000000000000000000000000000000000000
 
@@ -229,6 +235,10 @@ docker run \
   --rpc-http-enabled --rpc-http-api=ETH,NET,CONSENSUS \
   --rpc-http-host=0.0.0.0 \
   --rpc-http-port=8502 \
+  --rpc-http-cors-origins="*" \
+  --rpc-ws-enabled --rpc-ws-api=ETH,NET,CONSENSUS \
+  --rpc-ws-host=0.0.0.0 \
+  --rpc-ws-port=8602 \
   --Xmerge-support=true \
   --discovery-enabled=false \
   --miner-coinbase="0x1000000000000000000000000000000000000000"
