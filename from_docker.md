@@ -229,7 +229,7 @@ docker run \
   beacon_node \
   --enr-tcp-port=9000 --enr-udp-port=9000 \
   --port=9000 --discovery-port=9000 \
-  --eth1-endpoints "http://localhost:8545" \
+  --eth1 --eth1-endpoints "http://localhost:8545" \
   --boot-nodes "COMMA_SEPARATED_ENRS_HERE" \
   --http \
   --http-address 0.0.0.0 \

@@ -71,7 +71,7 @@ TESTNET_PATH="${PWD}/testnets/$TESTNET_NAME"
 mkdir -p "$TESTNET_PATH"
 
 # Pull client images
-docker pull $LIGHTHOUSE_DOCKER_IMAGE
+#docker pull $LIGHTHOUSE_DOCKER_IMAGE
 docker pull $TEKU_DOCKER_IMAGE
 docker pull $PRYSM_BEACON_IMAGE
 docker pull $PRYSM_VALIDATOR_IMAGE
@@ -118,6 +118,7 @@ docker run \
   --enr-udp "11000" \
   --listen-ip "0.0.0.0" \
   --listen-udp "11000" \
+  --fork-version "0x00000700" \
   --node-db "/data" \
   --priv="c481fa289efe87b258365f057e6c3afa51dbbbf31d9c38246b36d0a48da326ee"
 
@@ -276,6 +277,7 @@ docker run \
   -v "$TESTNET_PATH/nodes/$NODE_NAME:/besudata" \
   -u $(id -u):$(id -g) \
   -itd $BESU_IMAGE \
+  --logging trace \
   --data-path="/besudata" \
   --genesis-file="/networkdata/eth1_config.json" \
   --rpc-http-enabled --rpc-http-api=ETH,NET,CONSENSUS \
@@ -373,7 +375,7 @@ docker run \
   --testnet-yaml-config "/networkdata/eth2_config.yaml" \
   --debug-level=trace \
   beacon_node \
-  --eth1-endpoints "http://127.0.0.1:8502" \
+  --eth1 --eth1-endpoints "http://127.0.0.1:8502" \
   --boot-nodes "$BOOTNODE_ENR" \
   --http \
   --http-address 0.0.0.0 \
@@ -574,10 +576,10 @@ endpoints:
     eth1: Geth
   # Teku
   - addr: http://127.0.0.1:4001
-    eth1: Besu
+    eth1: Nethermind
   # Lighthouse
   - addr: http://127.0.0.1:4002
-    eth1: Nethermind
+    eth1: Besu
 # Dir for web assets
 outputDir: /public
 eth2:
