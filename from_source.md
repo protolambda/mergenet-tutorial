@@ -124,6 +124,11 @@ cd teku
 4. If building an older prysm branch, [work around LLVM build issue](https://github.com/prysmaticlabs/prysm/issues/8072), [Fixed here](https://github.com/prysmaticlabs/prysm/pull/8839)
 5. If you want to build docker images, you may need to patch bazel workspace with https://github.com/bazelbuild/rules_docker/releases/tag/v0.17.0
    See https://github.com/bazelbuild/rules_docker/issues/1814 for context.
+   Update: Prysm uses a different work around with bazel patch files.
+6. Note: the docker image produced by Bazel uses GLIBC 2.24 (debian9 base, via `go_image` -> "distroless" -> debian).
+   Most GLIBC symbols used by Prysm are 2.14 and older. The exception is `pthread_sigmask` which changed in GLIBC 2.32:
+   if your system GLIBC is too "new" (last 9 months...), you can't compile a working docker image with Bazel.
+   At the same time, the GLIBC usage breaks the Alpine docker image build too.
 
 ### Build
 
@@ -145,8 +150,8 @@ bazel run //beacon-chain:image_bundle
 bazel run //validator:image_bundle
 
 # retag the images to rayonism specific names
-docker tag gcr.io/prysmaticlabs/prysm/beacon-chain:latest protolambda/prysm-beacon:rayonism-minimal
-docker tag gcr.io/prysmaticlabs/prysm/validator:latest protolambda/prysm-validator:rayonism-minimal
+docker tag gcr.io/prysmaticlabs/prysm/beacon-chain:latest protolambda/prysm-beacon:rayonism
+docker tag gcr.io/prysmaticlabs/prysm/validator:latest protolambda/prysm-validator:rayonism
 ```
 
 ### Run
