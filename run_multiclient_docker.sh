@@ -311,6 +311,7 @@ docker run \
   --verbosity="debug" \
   --enable-debug-rpc-endpoints \
   --min-sync-peers 1 \
+  --rpc-max-page-size 500 \
   --slots-per-archive-point=64
 # Note: --slots-per-archive-point=64 is to improve local chain explorer performance by storing more state snapshots
 
@@ -691,7 +692,8 @@ indexer:
     pageSize: 500 # the amount of entries to fetch per paged rpc call
   eth1Endpoint: 'http://127.0.0.1:8500'
   eth1DepositContractAddress: '0x4242424242424242424242424242424242424242'
-  eth1DepositContractFirstBlock: 0
+  # Note: 0 is correct, but due to an underflow bug (being fixed), doesn't work.
+  eth1DepositContractFirstBlock: 1
 EOT
 
 docker run \
