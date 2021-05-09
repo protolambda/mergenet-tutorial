@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # To clean up:
-# docker stop bootnode0 catalyst0 besu0 nethermind0 teku0bn teku0vc lighthouse0bn lighthouse0vc prysm0bn prysm0vc forkmon0
+# docker stop bootnode0 catalyst0 besu0 nethermind0 teku0bn teku0vc lighthouse0bn lighthouse0vc prysm0bn prysm0vc forkmon0 postgres0 explorer0
 # docker container prune
 # sudo rm -rf testnets/$TESTNET_NAME
 
@@ -289,7 +289,7 @@ docker run \
   -v "$TESTNET_PATH/public/genesis.ssz:/networkdata/genesis.ssz" \
   -itd $PRYSM_BEACON_IMAGE \
   --accept-terms-of-use=true \
-  --datadir="./$TESTNET_NAME/nodes/prysm0/beacondata" \
+  --datadir="/beacondata" \
   --min-sync-peers=0 \
   --http-web3provider="http://127.0.0.1:8500" \
   --bootstrap-node="$BOOTNODE_ENR" \
@@ -602,9 +602,9 @@ echo "Initializing the postgres tables..."
 docker run -it --rm \
   --net=host \
   -u $(id -u):$(id -g) \
-  -v "$EXPLORER_TABLES_SQL_PATH:/src/tables.sql"
+  -v "$EXPLORER_TABLES_SQL_PATH:/src/tables.sql" \
   -it $POSTGRES_IMAGE \
-   psql -f /src/tables.sql -d db -h 0.0.0.0 -p 5432 -U postgres
+  psql -f /src/tables.sql -d db -h 0.0.0.0 -p 5432 -U postgres
 
 
 echo "Setting up explorer"
@@ -690,4 +690,4 @@ docker run \
   -v "$NODE_PATH/$NODE_PATH/imprint.html:/imprint.html" \
   -v "$TESTNET_PATH/public/eth2_config.yaml:/networkdata/eth2_config.yaml" \
   -itd $EXPLORER_IMAGE \
-  --config config.yaml
+  ./explorer --config config.yaml
