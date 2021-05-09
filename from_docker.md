@@ -116,8 +116,11 @@ docker run \
   -v ${PWD}/$TESTNET_NAME/public/eth1_nethermind_config.json:/networkdata/eth1_nethermind_config.json \
   -v ${PWD}/$TESTNET_NAME/nodes/nethermind0:/netherminddata \
   -itd nethermind/nethermind \
+  -c catalyst \
   --datadir "/netherminddata" \
   --Init.ChainSpecPath "/networkdata/eth1_nethermind_config.json" \
+  --JsonRpc.Enabled true \
+  --JsonRpc.EnabledModules "net,eth,consensus" \
   --Init.WebSocketsEnabled true \
   --JsonRpc.Port 8545 \
   --JsonRpc.WebSocketsPort 8546 \

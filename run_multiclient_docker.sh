@@ -225,6 +225,7 @@ docker run \
   --ws --ws.api net,eth,consensus \
   --ws.port 8600 \
   --ws.addr 0.0.0.0 \
+  --port 30303 \
   --nodiscover \
   --miner.etherbase 0x1000000000000000000000000000000000000000 \
   --datadir "/gethdata/chaindata"
@@ -245,9 +246,13 @@ docker run \
   --datadir "/netherminddata" \
   --Init.ChainSpecPath "/networkdata/eth1_nethermind_config.json" \
   --Init.WebSocketsEnabled true \
+  --JsonRpc.Enabled true \
+  --JsonRpc.EnabledModules "net,eth,consensus" \
   --JsonRpc.Port 8501 \
   --JsonRpc.WebSocketsPort 8601 \
   --JsonRpc.Host 0.0.0.0 \
+  --Network.DiscoveryPort 30301 \
+  --Network.P2PPort 30301 \
   --Merge.BlockAuthorAccount 0x1000000000000000000000000000000000000000
 
 # Besu
@@ -270,6 +275,7 @@ docker run \
   --rpc-ws-enabled --rpc-ws-api=ETH,NET,CONSENSUS \
   --rpc-ws-host=0.0.0.0 \
   --rpc-ws-port=8602 \
+  --p2p-port=30302 \
   --Xmerge-support=true \
   --discovery-enabled=false \
   --miner-coinbase="0x1000000000000000000000000000000000000000"
@@ -323,7 +329,7 @@ docker run \
   --network "/networkdata/eth2_config.yaml" \
   --data-path "/beacondata" \
   --p2p-enabled=true \
-  --logging=trace \
+  --logging=TRACE \
   --initial-state "/networkdata/genesis.ssz" \
   --eth1-endpoint "http://127.0.0.1:8501" \
   --p2p-discovery-bootnodes "$BOOTNODE_ENR" \
