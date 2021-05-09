@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # To clean up:
-# docker stop catalyst0 nethermind0 teku0bn teku0vc lighthouse0bn lighthouse0vc bootnode0 forkmon0
+# docker stop bootnode0 catalyst0 besu0 nethermind0 teku0bn teku0vc lighthouse0bn lighthouse0vc prysm0bn prysm0vc forkmon0
 # docker container prune
-# rm -rf testnets/$TESTNET_NAME
+# sudo rm -rf testnets/$TESTNET_NAME
 
 set -e
 
@@ -50,12 +50,15 @@ docker pull $LIGHTHOUSE_DOCKER_IMAGE
 docker pull $TEKU_DOCKER_IMAGE
 docker pull $PRYSM_BEACON_IMAGE
 docker pull $PRYSM_VALIDATOR_IMAGE
-docker pull $NIMBUS_DOCKER_IMAGE
 docker pull $NETHERMIND_IMAGE
 docker pull $GETH_IMAGE
 docker pull $BESU_IMAGE
 docker pull $BOOTNODE_IMAGE
 docker pull $FORKMON_IMAGE
+
+if [ $NIMBUS_ENABLED != 0 ]; then
+  docker pull $NIMBUS_DOCKER_IMAGE
+fi
 
 # Create venv for scripts
 python -m venv venv
@@ -235,7 +238,7 @@ docker run \
   -v "$TESTNET_PATH/public/eth1_config.json:/networkdata/eth1_config.json" \
   -v "$TESTNET_PATH/nodes/$NODE_NAME:/besudata" \
   -u $(id -u):$(id -g) \
-  $BESU_IMAGE \
+  -itd $BESU_IMAGE \
   --data-path="/besudata" \
   --genesis-file="/networkdata/eth1_config.json" \
   --rpc-http-enabled --rpc-http-api=ETH,NET,CONSENSUS \
@@ -322,6 +325,7 @@ docker run \
   -v "$TESTNET_PATH/public/eth2_config.yaml:/networkdata/eth2_config.yaml" \
   -v "$TESTNET_PATH/public/genesis.ssz:/networkdata/genesis.ssz" \
   -itd $PRYSM_BEACON_IMAGE \
+  --accept-terms-of-use=true \
   --datadir="./$TESTNET_NAME/nodes/prysm0/beacondata" \
   --min-sync-peers=0 \
   --http-web3provider="http://127.0.0.1:8502" \
@@ -339,7 +343,7 @@ docker run \
   --enable-debug-rpc-endpoints \
   --min-sync-peers 1
 
-if [ $NIMBUS_ENABLED ]; then
+if [ $NIMBUS_ENABLED != 0 ]; then
   # Nimbus # TODO: another eth1 node for nimbus to connect to, with websocket RPC exposed (nimbus doesn't support http rpc for eth1 connection)
   echo "starting nimbus beacon node"
   NODE_NAME=nimbus0bn
@@ -468,7 +472,7 @@ docker run \
   --wallet-password-file="/validatordata/wallet_pass.txt"
 
 # Nimbus
-if [ $NIMBUS_ENABLED ]; then  # TODO enable nimbus
+if [ $NIMBUS_ENABLED != 0 ]; then  # TODO enable nimbus
   echo "starting Nimbus validator client"
   NODE_NAME=nimbus0vc
   NODE_PATH="$TESTNET_PATH/nodes/$NODE_NAME"
@@ -539,11 +543,11 @@ EOT
 
 docker run \
   --name $NODE_NAME \
-  -p 6000:8080 \
+  --net host \
   -u $(id -u):$(id -g) \
   -v "$NODE_PATH:/data" \
   -itd $FORKMON_IMAGE \
   -config-file=/data/config.yaml
 
-echo "fork monitor running at: http://127.0.0.1:6000/"
+echo "fork monitor running at: http://127.0.0.1:8080/"
 
