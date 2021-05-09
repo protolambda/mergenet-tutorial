@@ -205,6 +205,9 @@ Note: The image entry point is plain shell. And the Beacon node (`bn`) and Valid
 Note: merge prototype work is not part of the client yet, use the `rayonism` docker tag instead.
 ```
 sigp/lighthouse:rayonism
+
+# If you need minimal-config and portable features enabled:
+protolambda/lighthouse:rayonism
 ```
 
 #### Running the beacon node:

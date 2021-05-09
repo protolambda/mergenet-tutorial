@@ -10,16 +10,26 @@ set -e
 # mainnet or minimal. For mainnet, you need `2**14` validators. For minimal just 64
 ETH2_SPEC_VARIANT=minimal
 
-LIGHTHOUSE_DOCKER_IMAGE=sigp/lighthouse:rayonism
+# LIGHTHOUSE_DOCKER_IMAGE=sigp/lighthouse:rayonism
+# Built with portable,spec-minimal features,
+# so the image can be used everywhere, and the minimal config can be used for testing
+LIGHTHOUSE_DOCKER_IMAGE=protolambda/lighthouse:rayonism
+
 TEKU_DOCKER_IMAGE=mkalinin/teku:rayonism
+
 #PRYSM_BEACON_IMAGE=gcr.io/prysmaticlabs/prysm/beacon-chain:merge-mainnet
 #PRYSM_VALIDATOR_IMAGE=gcr.io/prysmaticlabs/prysm/validator:merge-mainnet
 PRYSM_BEACON_IMAGE=protolambda/prysm-beacon:rayonism
 PRYSM_VALIDATOR_IMAGE=protolambda/prysm-validator:rayonism
+
 NIMBUS_DOCKER_IMAGE=protolambda/nimbus:rayonism
+
+# Eth1 nodes
 NETHERMIND_IMAGE=nethermind/nethermind:latest
 GETH_IMAGE=ethereum/client-go:latest
 BESU_IMAGE=suburbandad/besu:rayonism
+
+# Tools
 BOOTNODE_IMAGE=protolambda/eth2-bootnode:latest
 FORKMON_IMAGE=protolambda/eth2-fork-mon:latest
 POSTGRES_IMAGE=postgres:12.0
