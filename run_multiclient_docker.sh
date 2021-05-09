@@ -71,7 +71,7 @@ TESTNET_PATH="${PWD}/testnets/$TESTNET_NAME"
 mkdir -p "$TESTNET_PATH"
 
 # Pull client images
-#docker pull $LIGHTHOUSE_DOCKER_IMAGE
+docker pull $LIGHTHOUSE_DOCKER_IMAGE
 docker pull $TEKU_DOCKER_IMAGE
 docker pull $PRYSM_BEACON_IMAGE
 docker pull $PRYSM_VALIDATOR_IMAGE
