@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # To clean up:
-# docker stop catalyst0 nethermind0 teku0bn teku0vc lighthouse0bn lighthouse0vc bootnode0
+# docker stop bootnode0 catalyst0 besu0 nethermind0 teku0bn teku0vc lighthouse0bn lighthouse0vc prysm0bn prysm0vc forkmon0
 # docker container prune
-# rm -rf testnets/$TESTNET_NAME
+# sudo rm -rf testnets/$TESTNET_NAME
 
 set -e
 
@@ -19,6 +19,7 @@ NETHERMIND_IMAGE=nethermind/nethermind:latest
 GETH_IMAGE=ethereum/client-go:latest
 BESU_IMAGE=suburbandad/besu:rayonism
 BOOTNODE_IMAGE=protolambda/eth2-bootnode:latest
+FORKMON_IMAGE=protolambda/eth2-fork-mon:latest
 
 # TODO: not yet working. Nimbus requires custom docker builds for testnet configuration changes
 # (need a nimbus dev to look at this)
@@ -49,11 +50,15 @@ docker pull $LIGHTHOUSE_DOCKER_IMAGE
 docker pull $TEKU_DOCKER_IMAGE
 docker pull $PRYSM_BEACON_IMAGE
 docker pull $PRYSM_VALIDATOR_IMAGE
-docker pull $NIMBUS_DOCKER_IMAGE
 docker pull $NETHERMIND_IMAGE
 docker pull $GETH_IMAGE
 docker pull $BESU_IMAGE
 docker pull $BOOTNODE_IMAGE
+docker pull $FORKMON_IMAGE
+
+if [ $NIMBUS_ENABLED != 0 ]; then
+  docker pull $NIMBUS_DOCKER_IMAGE
+fi
 
 # Create venv for scripts
 python -m venv venv
@@ -117,8 +122,12 @@ TIME_NOW=$(date +%s)
 GENESIS_DELAY=60
 ETH1_GENESIS_TIMESTAMP=$((TIME_NOW + GENESIS_DELAY))
 ETH2_GENESIS_DELAY=0
+ETH2_GENESIS_TIMESTAMP=$((ETH1_GENESIS_TIMESTAMP + ETH2_GENESIS_DELAY))
 
-echo "configuring testnet, genesis: $ETH1_GENESIS_TIMESTAMP (eth1) + $ETH2_GENESIS_DELAY (eth2 delay) = $((ETH1_GENESIS_TIMESTAMP + ETH2_GENESIS_DELAY))"
+echo "configuring testnet...
+Eth1 genesis: $TIME_NOW (now) + $GENESIS_DELAY (delay) = $ETH1_GENESIS_TIMESTAMP
+Eth2 genesis: $ETH1_GENESIS_TIMESTAMP (eth1) + $ETH2_GENESIS_DELAY (eth2 delay) = $ETH2_GENESIS_TIMESTAMP"
+
 cat > "$TESTNET_PATH/private/mergenet.yaml" << EOT
 mnemonic: ${ETH1_MNEMONIC}
 eth1_premine:
@@ -229,7 +238,7 @@ docker run \
   -v "$TESTNET_PATH/public/eth1_config.json:/networkdata/eth1_config.json" \
   -v "$TESTNET_PATH/nodes/$NODE_NAME:/besudata" \
   -u $(id -u):$(id -g) \
-  $BESU_IMAGE \
+  -itd $BESU_IMAGE \
   --data-path="/besudata" \
   --genesis-file="/networkdata/eth1_config.json" \
   --rpc-http-enabled --rpc-http-api=ETH,NET,CONSENSUS \
@@ -304,7 +313,7 @@ docker run \
   --listen-address 0.0.0.0 \
   --port 9001
 
-# Prysm  # TODO: another eth1 node for prysm to connect to
+# Prysm
 echo "starting prysm beacon node"
 NODE_NAME=prysm0bn
 mkdir "$TESTNET_PATH/nodes/$NODE_NAME"
@@ -316,6 +325,7 @@ docker run \
   -v "$TESTNET_PATH/public/eth2_config.yaml:/networkdata/eth2_config.yaml" \
   -v "$TESTNET_PATH/public/genesis.ssz:/networkdata/genesis.ssz" \
   -itd $PRYSM_BEACON_IMAGE \
+  --accept-terms-of-use=true \
   --datadir="./$TESTNET_NAME/nodes/prysm0/beacondata" \
   --min-sync-peers=0 \
   --http-web3provider="http://127.0.0.1:8502" \
@@ -333,7 +343,7 @@ docker run \
   --enable-debug-rpc-endpoints \
   --min-sync-peers 1
 
-if [ $NIMBUS_ENABLED ]; then
+if [ $NIMBUS_ENABLED != 0 ]; then
   # Nimbus # TODO: another eth1 node for nimbus to connect to, with websocket RPC exposed (nimbus doesn't support http rpc for eth1 connection)
   echo "starting nimbus beacon node"
   NODE_NAME=nimbus0bn
@@ -462,7 +472,7 @@ docker run \
   --wallet-password-file="/validatordata/wallet_pass.txt"
 
 # Nimbus
-if [ $NIMBUS_ENABLED ]; then  # TODO enable nimbus
+if [ $NIMBUS_ENABLED != 0 ]; then  # TODO enable nimbus
   echo "starting Nimbus validator client"
   NODE_NAME=nimbus0vc
   NODE_PATH="$TESTNET_PATH/nodes/$NODE_NAME"
@@ -493,3 +503,51 @@ if [ $NIMBUS_ENABLED ]; then  # TODO enable nimbus
     --validators-dir="/validatordata/keys" \
     --secrets-dir="/validatordata/secrets"
 fi
+
+
+# Fork monitor setup
+SLOTS_PER_EPOCH=32
+SECONDS_PER_SLOT=12
+if [ "$ETH2_SPEC_VARIANT" == "minimal" ]; then
+  SLOTS_PER_EPOCH=8
+  SECONDS_PER_SLOT=6
+fi
+
+NODE_NAME=forkmon0
+NODE_PATH="$TESTNET_PATH/nodes/$NODE_NAME"
+mkdir -p "$NODE_PATH"
+cat > "$NODE_PATH/config.yaml"  << EOT
+# disabled
+weak_subjectivity_provider_endpoint: ""
+# disabled
+etherscan_api_key: ""
+http_timeout_milliseconds: 2000
+endpoints:
+  # Teku
+  - addr: http://127.0.0.1:4000
+    eth1: Geth
+  # Lighthouse
+  - addr: http://127.0.0.1:4001
+    eth1: Besu
+  # Prysm
+  - addr: http://127.0.0.1:4002
+    eth1: Nethermind
+# Dir for web assets
+outputDir: /public
+eth2:
+  seconds_per_slot: ${SECONDS_PER_SLOT}
+  genesis_time: ${ETH2_GENESIS_TIMESTAMP}
+  slots_per_epoch: ${SLOTS_PER_EPOCH}
+  network: Local
+EOT
+
+docker run \
+  --name $NODE_NAME \
+  --net host \
+  -u $(id -u):$(id -g) \
+  -v "$NODE_PATH:/data" \
+  -itd $FORKMON_IMAGE \
+  -config-file=/data/config.yaml
+
+echo "fork monitor running at: http://127.0.0.1:8080/"
+
