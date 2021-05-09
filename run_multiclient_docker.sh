@@ -293,8 +293,8 @@ docker run \
   --min-sync-peers=0 \
   --http-web3provider="http://127.0.0.1:8500" \
   --bootstrap-node="$BOOTNODE_ENR" \
-  --chain-config-file="./$TESTNET_NAME/public/eth2_config.yaml" \
-  --genesis-state="./$TESTNET_NAME/public/genesis.ssz" \
+  --chain-config-file="/networkdata/eth2_config.yaml" \
+  --genesis-state="/networkdata/genesis.ssz" \
   --p2p-host-ip="127.0.0.1" \
   --p2p-max-peers=30 \
   --p2p-udp-port=9000 --p2p-tcp-port=9000 \
@@ -552,13 +552,13 @@ weak_subjectivity_provider_endpoint: ""
 etherscan_api_key: ""
 http_timeout_milliseconds: 2000
 endpoints:
-  # Teku
+  # Prysm
   - addr: http://127.0.0.1:4000
     eth1: Geth
-  # Lighthouse
+  # Teku
   - addr: http://127.0.0.1:4001
     eth1: Besu
-  # Prysm
+  # Lighthouse
   - addr: http://127.0.0.1:4002
     eth1: Nethermind
 # Dir for web assets
@@ -597,6 +597,9 @@ docker run \
   -u $(id -u):$(id -g) \
   -v "$NODE_PATH:/postgresql/data" \
   -itd $POSTGRES_IMAGE
+
+# Wait for postgres docker container to get online
+sleep 5
 
 echo "Initializing the postgres tables..."
 docker run -it --rm \
@@ -640,6 +643,9 @@ database:
 
 # Chain network configuration
 chain:
+  slotsPerEpoch: ${SLOTS_PER_EPOCH}
+  secondsPerSlot: ${SECONDS_PER_SLOT}
+  minGenesisActiveValidatorCount: ${ETH2_MIN_GENESIS_ACTIVE_VALIDATOR_COUNT}
   genesisTimestamp: ${ETH2_GENESIS_TIMESTAMP}
   mainnet: false  # hide mainnet staking pool etc. info
   phase0path: "/networkdata/eth2_config.yaml"
@@ -686,8 +692,8 @@ docker run \
   --name $NODE_NAME \
   --net host \
   -u $(id -u):$(id -g) \
-  -v "$NODE_PATH/$NODE_PATH/config.yaml:/config.yaml" \
-  -v "$NODE_PATH/$NODE_PATH/imprint.html:/imprint.html" \
+  -v "$NODE_PATH/config.yaml:/config.yaml" \
+  -v "$NODE_PATH/imprint.html:/imprint.html" \
   -v "$TESTNET_PATH/public/eth2_config.yaml:/networkdata/eth2_config.yaml" \
   -itd $EXPLORER_IMAGE \
-  ./explorer --config config.yaml
+  ./explorer --config /config.yaml
