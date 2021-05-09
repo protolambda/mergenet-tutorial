@@ -186,6 +186,11 @@ git clone -b rayonism git@github.com:sigp/lighthouse.git
 cd lighthouse
 
 make install
+# Note:
+# - to support loading multiple configs, you need to use the "spec-minimal" cargo feature
+# - to make the docker image portable between machines (at cost of some BLS optimizations etc.), use portable feature.
+# E.g.
+# cargo install --path lighthouse --force --locked --features portable,spec-minimal
 ```
 
 ### Run

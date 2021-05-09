@@ -116,8 +116,11 @@ docker run \
   -v ${PWD}/$TESTNET_NAME/public/eth1_nethermind_config.json:/networkdata/eth1_nethermind_config.json \
   -v ${PWD}/$TESTNET_NAME/nodes/nethermind0:/netherminddata \
   -itd nethermind/nethermind \
+  -c catalyst \
   --datadir "/netherminddata" \
   --Init.ChainSpecPath "/networkdata/eth1_nethermind_config.json" \
+  --JsonRpc.Enabled true \
+  --JsonRpc.EnabledModules "net,eth,consensus" \
   --Init.WebSocketsEnabled true \
   --JsonRpc.Port 8545 \
   --JsonRpc.WebSocketsPort 8546 \
@@ -202,6 +205,9 @@ Note: The image entry point is plain shell. And the Beacon node (`bn`) and Valid
 Note: merge prototype work is not part of the client yet, use the `rayonism` docker tag instead.
 ```
 sigp/lighthouse:rayonism
+
+# If you need minimal-config and portable features enabled:
+protolambda/lighthouse:rayonism
 ```
 
 #### Running the beacon node:
@@ -223,7 +229,7 @@ docker run \
   beacon_node \
   --enr-tcp-port=9000 --enr-udp-port=9000 \
   --port=9000 --discovery-port=9000 \
-  --eth1-endpoints "http://localhost:8545" \
+  --eth1 --eth1-endpoints "http://localhost:8545" \
   --boot-nodes "COMMA_SEPARATED_ENRS_HERE" \
   --http \
   --http-address 0.0.0.0 \
