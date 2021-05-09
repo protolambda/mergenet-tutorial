@@ -258,6 +258,38 @@ docker run \
 
 # Run eth2 beacon nodes
 
+# Prysm
+echo "starting prysm beacon node"
+NODE_NAME=prysm0bn
+mkdir "$TESTNET_PATH/nodes/$NODE_NAME"
+docker run \
+  --name $NODE_NAME \
+  --net host \
+  -u $(id -u):$(id -g) \
+  -v "$TESTNET_PATH/nodes/$NODE_NAME:/beacondata" \
+  -v "$TESTNET_PATH/public/eth2_config.yaml:/networkdata/eth2_config.yaml" \
+  -v "$TESTNET_PATH/public/genesis.ssz:/networkdata/genesis.ssz" \
+  -itd $PRYSM_BEACON_IMAGE \
+  --accept-terms-of-use=true \
+  --datadir="./$TESTNET_NAME/nodes/prysm0/beacondata" \
+  --min-sync-peers=0 \
+  --http-web3provider="http://127.0.0.1:8500" \
+  --bootstrap-node="$BOOTNODE_ENR" \
+  --chain-config-file="./$TESTNET_NAME/public/eth2_config.yaml" \
+  --genesis-state="./$TESTNET_NAME/public/genesis.ssz" \
+  --p2p-host-ip="127.0.0.1" \
+  --p2p-max-peers=30 \
+  --p2p-udp-port=9000 --p2p-tcp-port=9000 \
+  --monitoring-host=0.0.0.0 --monitoring-port=8000 \
+  --rpc-host=0.0.0.0 --rpc-port=4100 \
+  --grpc-gateway-host=0.0.0.0 \
+  --grpc-gateway-port=4000 \
+  --verbosity="debug" \
+  --enable-debug-rpc-endpoints \
+  --min-sync-peers 1 \
+  --slots-per-archive-point=64
+# Note: --slots-per-archive-point=64 is to improve local chain explorer performance by storing more state snapshots
+
 # Teku
 echo "starting teku beacon node"
 NODE_NAME=teku0bn
@@ -275,16 +307,16 @@ docker run \
   --p2p-enabled=true \
   --logging=trace \
   --initial-state "/networkdata/genesis.ssz" \
-  --eth1-endpoint "http://127.0.0.1:8500" \
+  --eth1-endpoint "http://127.0.0.1:8501" \
   --p2p-discovery-bootnodes "$BOOTNODE_ENR" \
-  --metrics-enabled=true --metrics-interface=0.0.0.0 --metrics-port=8000 \
+  --metrics-enabled=true --metrics-interface=0.0.0.0 --metrics-port=8001 \
   --p2p-discovery-enabled=true \
   --p2p-peer-lower-bound=1 \
-  --p2p-port=9000 \
+  --p2p-port=9001 \
   --rest-api-enabled=true \
   --rest-api-docs-enabled=true \
   --rest-api-interface=0.0.0.0 \
-  --rest-api-port=4000 \
+  --rest-api-port=4001 \
   --Xdata-storage-non-canonical-blocks-enabled=true
 
 # Lighthouse
@@ -306,46 +338,16 @@ docker run \
   --testnet-yaml-config "/networkdata/eth2_config.yaml" \
   --debug-level=trace \
   beacon_node \
-  --eth1-endpoints "http://127.0.0.1:8501" \
+  --eth1-endpoints "http://127.0.0.1:8502" \
   --boot-nodes "$BOOTNODE_ENR" \
   --http \
   --http-address 0.0.0.0 \
-  --http-port 4001 \
+  --http-port 4002 \
   --metrics \
   --metrics-address 0.0.0.0 \
-  --metrics-port 8001 \
+  --metrics-port 8002 \
   --listen-address 0.0.0.0 \
-  --port 9001
-
-# Prysm
-echo "starting prysm beacon node"
-NODE_NAME=prysm0bn
-mkdir "$TESTNET_PATH/nodes/$NODE_NAME"
-docker run \
-  --name $NODE_NAME \
-  --net host \
-  -u $(id -u):$(id -g) \
-  -v "$TESTNET_PATH/nodes/$NODE_NAME:/beacondata" \
-  -v "$TESTNET_PATH/public/eth2_config.yaml:/networkdata/eth2_config.yaml" \
-  -v "$TESTNET_PATH/public/genesis.ssz:/networkdata/genesis.ssz" \
-  -itd $PRYSM_BEACON_IMAGE \
-  --accept-terms-of-use=true \
-  --datadir="./$TESTNET_NAME/nodes/prysm0/beacondata" \
-  --min-sync-peers=0 \
-  --http-web3provider="http://127.0.0.1:8502" \
-  --bootstrap-node="$BOOTNODE_ENR" \
-  --chain-config-file="./$TESTNET_NAME/public/eth2_config.yaml" \
-  --genesis-state="./$TESTNET_NAME/public/genesis.ssz" \
-  --p2p-host-ip="127.0.0.1" \
-  --p2p-max-peers=30 \
-  --p2p-udp-port=9002 --p2p-tcp-port=9002 \
-  --monitoring-host=0.0.0.0 --monitoring-port=8002 \
-  --rpc-host=0.0.0.0 --rpc-port=4102 \
-  --grpc-gateway-host=0.0.0.0 \
-  --grpc-gateway-port=4002 \
-  --verbosity="debug" \
-  --enable-debug-rpc-endpoints \
-  --min-sync-peers 1
+  --port 9002
 
 if [ $NIMBUS_ENABLED != 0 ]; then
   # Nimbus # TODO: another eth1 node for nimbus to connect to, with websocket RPC exposed (nimbus doesn't support http rpc for eth1 connection)
@@ -381,6 +383,38 @@ fi
 
 # validators
 
+# Prysm
+echo "starting Prysm validator client"
+NODE_NAME=prysm0vc
+NODE_PATH="$TESTNET_PATH/nodes/$NODE_NAME"
+if [ -d "$NODE_PATH" ]
+then
+  echo "$NODE_NAME already has existing data"
+else
+  echo "creating data for $NODE_NAME"
+  mkdir -p "$NODE_PATH/wallet/direct/accounts"
+  cp "$TESTNET_PATH/private/validator0/prysm/all-accounts.keystore.json" "$NODE_PATH/wallet/direct/accounts/all-accounts.keystore.json"
+  cp "$TESTNET_PATH/private/validator0/prysm/keymanageropts.json" "$NODE_PATH/wallet/direct/keymanageropts.json"
+  echo -n "$PRYSM_BULK_KEYSTORE_PASS" > "$NODE_PATH/wallet_pass.txt"
+fi
+
+docker run \
+  --name $NODE_NAME \
+  --net host \
+  -u $(id -u):$(id -g) \
+  -v "$TESTNET_PATH/nodes/$NODE_NAME:/validatordata" \
+  -v "$TESTNET_PATH/public/eth2_config.yaml:/networkdata/eth2_config.yaml" \
+  -itd $PRYSM_VALIDATOR_IMAGE \
+  --accept-terms-of-use=true \
+  --datadir="/validatordata" \
+  --chain-config-file="/networkdata/eth2_config.yaml" \
+  --beacon-rpc-provider=localhost:4100 \
+  --graffiti="prysm" \
+  --monitoring-host=0.0.0.0 --monitoring-port=8100 \
+  --wallet-dir=/validatordata/wallet \
+  --wallet-password-file="/validatordata/wallet_pass.txt"
+
+
 # Teku
 echo "starting teku validator client"
 NODE_NAME=teku0vc
@@ -391,8 +425,8 @@ then
 else
   echo "creating data for $NODE_NAME"
   mkdir -p "$NODE_PATH"
-  cp -r "$TESTNET_PATH/private/validator0/teku-keys" "$NODE_PATH/keys"
-  cp -r "$TESTNET_PATH/private/validator0/teku-secrets" "$NODE_PATH/secrets"
+  cp -r "$TESTNET_PATH/private/validator1/teku-keys" "$NODE_PATH/keys"
+  cp -r "$TESTNET_PATH/private/validator1/teku-secrets" "$NODE_PATH/secrets"
 fi
 
 docker run \
@@ -406,7 +440,7 @@ docker run \
   validator-client \
   --network "/networkdata/eth2_config.yaml" \
   --data-path "/validatordata" \
-  --beacon-node-api-endpoint "http://127.0.0.1:4000" \
+  --beacon-node-api-endpoint "http://127.0.0.1:4001" \
   --validators-graffiti="teku" \
   --validator-keys "/validatordata/keys:/validatordata/secrets"
 
@@ -421,8 +455,8 @@ then
 else
   echo "creating data for $NODE_NAME"
   mkdir -p "$NODE_PATH"
-  cp -r "$TESTNET_PATH/private/validator1/keys" "$NODE_PATH/keys"
-  cp -r "$TESTNET_PATH/private/validator1/secrets" "$NODE_PATH/secrets"
+  cp -r "$TESTNET_PATH/private/validator2/keys" "$NODE_PATH/keys"
+  cp -r "$TESTNET_PATH/private/validator2/secrets" "$NODE_PATH/secrets"
 fi
 
 docker run \
@@ -439,41 +473,11 @@ docker run \
   --testnet-yaml-config "/networkdata/eth2_config.yaml" \
   validator_client \
   --init-slashing-protection \
-  --beacon-nodes "http://127.0.0.1:4001" \
+  --beacon-nodes "http://127.0.0.1:4002" \
   --graffiti="lighthouse" \
   --validators-dir "/validatordata/keys" \
   --secrets-dir "/validatordata/secrets"
 
-# Prysm
-echo "starting Prysm validator client"
-NODE_NAME=prysm0vc
-NODE_PATH="$TESTNET_PATH/nodes/$NODE_NAME"
-if [ -d "$NODE_PATH" ]
-then
-  echo "$NODE_NAME already has existing data"
-else
-  echo "creating data for $NODE_NAME"
-  mkdir -p "$NODE_PATH/wallet/direct/accounts"
-  cp "$TESTNET_PATH/private/validator2/prysm/all-accounts.keystore.json" "$NODE_PATH/wallet/direct/accounts/all-accounts.keystore.json"
-  cp "$TESTNET_PATH/private/validator2/prysm/keymanageropts.json" "$NODE_PATH/wallet/direct/keymanageropts.json"
-  echo -n "$PRYSM_BULK_KEYSTORE_PASS" > "$NODE_PATH/wallet_pass.txt"
-fi
-
-docker run \
-  --name $NODE_NAME \
-  --net host \
-  -u $(id -u):$(id -g) \
-  -v "$TESTNET_PATH/nodes/$NODE_NAME:/validatordata" \
-  -v "$TESTNET_PATH/public/eth2_config.yaml:/networkdata/eth2_config.yaml" \
-  -itd $PRYSM_VALIDATOR_IMAGE \
-  --accept-terms-of-use=true \
-  --datadir="/validatordata" \
-  --chain-config-file="/networkdata/eth2_config.yaml" \
-  --beacon-rpc-provider=localhost:4102 \
-  --graffiti="prysm" \
-  --monitoring-host=0.0.0.0 --monitoring-port=8102 \
-  --wallet-dir=/validatordata/wallet \
-  --wallet-password-file="/validatordata/wallet_pass.txt"
 
 # Nimbus
 if [ $NIMBUS_ENABLED != 0 ]; then  # TODO enable nimbus
