@@ -12,8 +12,10 @@ ETH2_SPEC_VARIANT=minimal
 
 LIGHTHOUSE_DOCKER_IMAGE=sigp/lighthouse:rayonism
 TEKU_DOCKER_IMAGE=mkalinin/teku:rayonism
-PRYSM_BEACON_IMAGE=gcr.io/prysmaticlabs/prysm/beacon-chain:merge-mainnet
-PRYSM_VALIDATOR_IMAGE=gcr.io/prysmaticlabs/prysm/validator:merge-mainnet
+#PRYSM_BEACON_IMAGE=gcr.io/prysmaticlabs/prysm/beacon-chain:merge-mainnet
+#PRYSM_VALIDATOR_IMAGE=gcr.io/prysmaticlabs/prysm/validator:merge-mainnet
+PRYSM_BEACON_IMAGE=protolambda/prysm-beacon:rayonism
+PRYSM_VALIDATOR_IMAGE=protolambda/prysm-validator:rayonism
 NIMBUS_DOCKER_IMAGE=protolambda/nimbus:rayonism
 NETHERMIND_IMAGE=nethermind/nethermind:latest
 GETH_IMAGE=ethereum/client-go:latest
@@ -26,8 +28,10 @@ FORKMON_IMAGE=protolambda/eth2-fork-mon:latest
 NIMBUS_ENABLED=0
 
 if [ "$ETH2_SPEC_VARIANT" == "minimal" ]; then
-  PRYSM_BEACON_IMAGE=gcr.io/prysmaticlabs/prysm/beacon-chain:merge-minimal
-  PRYSM_VALIDATOR_IMAGE=gcr.io/prysmaticlabs/prysm/validator:merge-minimal
+#  PRYSM_BEACON_IMAGE=gcr.io/prysmaticlabs/prysm/beacon-chain:merge-minimal
+#  PRYSM_VALIDATOR_IMAGE=gcr.io/prysmaticlabs/prysm/validator:merge-minimal
+  PRYSM_BEACON_IMAGE=protolambda/prysm-beacon:rayonism-minimal
+  PRYSM_VALIDATOR_IMAGE=protolambda/prysm-validator:rayonism-minimal
   # TODO: failed attempt at nimbus minimal build. Need to try configure testnet for minimal-mode config outside of docker.
   NIMBUS_DOCKER_IMAGE=protolambda/nimbus:rayonism-minimal
 fi
