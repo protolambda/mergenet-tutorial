@@ -106,19 +106,25 @@ docker run \
 ```
 nethermind/nethermind:latest
 ```
+#### Generate config
+```
+python generate_eth1_nethermind_conf.py > "$TESTNET_NAME/public/eth1_nethermind_config.json"
+```
 
 #### Running:
 
 Note: the nethermind docker cannot handle user changes (error on p2p key write, permissions problem), the container runs nethermind root internally.
 ```shell
 docker run \
+  -p 8545:8545 \
+  -p 8546:8546 \
   --name nethermind0 \
-  -v ${PWD}/$TESTNET_NAME/public/eth1_nethermind_config.json:/networkdata/eth1_nethermind_config.json \
+  -v ${PWD}/$TESTNET_NAME/public/eth1_nethermind_config.json:/nethermind/chainspec/eth1_nethermind_config.json \
   -v ${PWD}/$TESTNET_NAME/nodes/nethermind0:/netherminddata \
   -itd nethermind/nethermind \
   -c catalyst \
   --datadir "/netherminddata" \
-  --Init.ChainSpecPath "/networkdata/eth1_nethermind_config.json" \
+  --Init.ChainSpecPath "/nethermind/chainspec/eth1_nethermind_config.json" \
   --JsonRpc.Enabled true \
   --JsonRpc.EnabledModules "net,eth,consensus" \
   --Init.WebSocketsEnabled true \
