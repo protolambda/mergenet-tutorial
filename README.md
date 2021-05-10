@@ -60,12 +60,16 @@ eth2-testnet-genesis merge \
 #
 # You can change the range of validator accounts, to split keys between nodes.
 # The mnemonic and key-range should match that of a tranche of validators in the beacon-state genesis.
+#
+# If you plan to test deposits make sure to generate more keystores here than
+# `count` in `genesis_validators.yaml`.
+
 export VALIDATOR_NODE_NAME="valclient0"
 eth2-val-tools keystores \
   --out-loc "$TESTNET_NAME/private/$VALIDATOR_NODE_NAME" \
   --prysm-pass="foobar" \
   --source-min=0 \
-  --source-max=64 \
+  --source-max=76 \
   --source-mnemonic="lumber kind orange gold firm achieve tree robust peasant april very word ordinary before treat way ivory jazz cereal debate juice evil flame sadness"
 ```
 
@@ -103,7 +107,19 @@ Run `example_transaction.py`.
 
 ### Test deposit
 
-TODO
+```shell
+
+# Generate the deposit data
+
+eth2-val-tools deposit-data --source-min 64 --source-max 76 \
+  --fork-version 0x00000700 \
+  --validators-mnemonic "lumber kind orange gold firm achieve tree robust peasant april very word ordinary before treat way ivory jazz cereal debate juice evil flame sadness" \
+  --withdrawals-mnemonic="bulk monster between urge hidden device play live island ankle resist pilot design only choice oppose know invest surge nerve voice holiday safe airport" \
+  > "$TESTNET_NAME"/private/$VALIDATOR_NODE_NAME/depositdata
+
+# Submit the deposits
+python send_deposits.py
+```
 
 ### Test contract deployment
 
