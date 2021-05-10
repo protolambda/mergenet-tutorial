@@ -27,7 +27,9 @@ NIMBUS_DOCKER_IMAGE=protolambda/nimbus:rayonism
 # Eth1 nodes
 NETHERMIND_IMAGE=nethermind/nethermind:latest
 GETH_IMAGE=ethereum/client-go:latest
-BESU_IMAGE=suburbandad/besu:rayonism
+
+#BESU_IMAGE=suburbandad/besu:rayonism
+BESU_IMAGE=protolambda/besu:rayonism  # has newBlock transaction decoding bug-fix
 
 # Tools
 BOOTNODE_IMAGE=protolambda/eth2-bootnode:latest
@@ -313,7 +315,7 @@ docker run \
   --bootstrap-node="$BOOTNODE_ENR" \
   --chain-config-file="/networkdata/eth2_config.yaml" \
   --genesis-state="/networkdata/genesis.ssz" \
-  --p2p-host-ip="127.0.0.1" \
+  --p2p-host-ip="0.0.0.0" \
   --p2p-max-peers=30 \
   --p2p-udp-port=9000 --p2p-tcp-port=9000 \
   --monitoring-host=0.0.0.0 --monitoring-port=8000 \
