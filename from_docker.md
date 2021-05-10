@@ -106,12 +106,17 @@ docker run \
 ```
 nethermind/nethermind:latest
 ```
+#### Generate config
+```
+python generate_eth1_nethermind_conf.py > "$TESTNET_NAME/public/eth1_nethermind_config.json"
+```
 
 #### Running:
 
 Note: the nethermind docker cannot handle user changes (error on p2p key write, permissions problem), the container runs nethermind root internally.
 ```shell
 docker run \
+  --net host \
   --name nethermind0 \
   -v ${PWD}/$TESTNET_NAME/public/eth1_nethermind_config.json:/networkdata/eth1_nethermind_config.json \
   -v ${PWD}/$TESTNET_NAME/nodes/nethermind0:/netherminddata \
