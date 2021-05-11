@@ -34,6 +34,7 @@ suburbandad/besu:rayonism
 #### Running
 
 ```shell
+mkdir -p ${PWD}/$TESTNET_NAME/nodes/besu0
 docker run \
   --name besu0 \
   -u $(id -u):$(id -g) --net host \
@@ -66,6 +67,7 @@ ethereum/client-go:latest
 Important: for custom testnets, you will need to init the data-dir before running the client, like below:
 
 ```shell
+mkdir -p ${PWD}/$TESTNET_NAME/nodes/geth0
 docker run \
   --name tmpgeth \
   --rm \
@@ -152,6 +154,7 @@ mkalinin/teku:rayonism
 #### Running the beacon node:
 
 ```shell
+mkdir -p ${PWD}/$TESTNET_NAME/nodes/teku0bn
 docker run \
   --name teku0bn \
   -u $(id -u):$(id -g) --net host \
@@ -220,6 +223,7 @@ protolambda/lighthouse:rayonism
 #### Running the beacon node:
 
 ```shell
+mkdir -p ${PWD}/$TESTNET_NAME/nodes/lighthouse0bn
 docker run \
   --name lighthouse0bn \
   -u $(id -u):$(id -g) --net host \
@@ -294,6 +298,7 @@ gcr.io/prysmaticlabs/prysm/validator:merge-minimal
 #### Running the beacon node:
 
 ```shell
+mkdir -p ${PWD}/$TESTNET_NAME/nodes/prysm0bn
 docker run \
   --name prysm0bn \
   -u $(id -u):$(id -g) --net host \
@@ -368,6 +373,7 @@ Or compile them yourself with https://github.com/protolambda/nimbus-docker/ (not
 #### Running the beacon node:
 
 ```shell
+mkdir -p ${PWD}/$TESTNET_NAME/nodes/nimbus0bn
 docker run \
   --name nimbus0bn \
   -u $(id -u):$(id -g) --net host \
