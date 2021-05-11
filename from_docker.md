@@ -188,10 +188,10 @@ docker run \
 
 ```shell
 # prepare keys
-NODE_PATH="$TESTNET_PATH/nodes/teku0vc"
+NODE_PATH="$TESTNET_NAME/nodes/teku0vc"
 mkdir -p "$NODE_PATH"
-cp -r "$TESTNET_PATH/private/validator0/teku-keys" "$NODE_PATH/keys"
-cp -r "$TESTNET_PATH/private/validator0/teku-secrets" "$NODE_PATH/secrets"
+cp -r "$TESTNET_NAME/private/validator0/teku-keys" "$NODE_PATH/keys"
+cp -r "$TESTNET_NAME/private/validator0/teku-secrets" "$NODE_PATH/secrets"
 
 docker run \
   --name teku0vc \
