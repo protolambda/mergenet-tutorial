@@ -74,7 +74,7 @@ docker run \
   -u $(id -u):$(id -g) --net host \
   -v ${PWD}/$TESTNET_NAME/public/eth1_config.json:/networkdata/eth1_config.json \
   -v ${PWD}/$TESTNET_NAME/nodes/geth0:/gethdata \
-  ethereum/client-go:latest
+  ethereum/client-go:latest \
   --catalyst \
   --datadir "/gethdata/chaindata" \
   init "/networkdata/eth1_config.json"
@@ -88,17 +88,17 @@ docker run \
   -u $(id -u):$(id -g) --net host \
   -v ${PWD}/$TESTNET_NAME/public/eth1_config.json:/networkdata/eth1_config.json \
   -v ${PWD}/$TESTNET_NAME/nodes/geth0:/gethdata \
-  ethereum/client-go:latest
-  --catalyst
-  --http --http.api net,eth,consensus
-  --http.port 8545
-  --http.addr 0.0.0.0
-  --http.corsdomain "*"
-  --ws --ws.api net,eth,consensus
-  --ws.port 8546
-  --ws.addr 0.0.0.0
-  --nodiscover
-  --miner.etherbase 0x1000000000000000000000000000000000000000
+  ethereum/client-go:latest \
+  --catalyst \
+  --http --http.api net,eth,consensus \
+  --http.port 8545 \
+  --http.addr 0.0.0.0 \
+  --http.corsdomain "*" \
+  --ws --ws.api net,eth,consensus \
+  --ws.port 8546 \
+  --ws.addr 0.0.0.0 \
+  --nodiscover \
+  --miner.etherbase 0x1000000000000000000000000000000000000000 \
   --datadir "/gethdata/chaindata"
 ```
 
