@@ -304,6 +304,7 @@ docker run \
   --accept-terms-of-use=true \
   --datadir="/beacondata" \
   --min-sync-peers=0 \
+  --contract-deployment-block 0 \
   --http-web3provider="http://localhost:8545" \
   --bootstrap-node="REPEAT_THIS_FLAG_TO_ADD_EVERY_ENR" \
   --chain-config-file="/networkdata/eth2_config.yaml" \

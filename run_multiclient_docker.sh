@@ -311,6 +311,7 @@ docker run \
   --accept-terms-of-use=true \
   --datadir="/beacondata" \
   --min-sync-peers=0 \
+  --contract-deployment-block 0 \
   --http-web3provider="http://127.0.0.1:8500" \
   --bootstrap-node="$BOOTNODE_ENR" \
   --chain-config-file="/networkdata/eth2_config.yaml" \
