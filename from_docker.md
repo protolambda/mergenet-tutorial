@@ -34,6 +34,7 @@ suburbandad/besu:rayonism
 #### Running
 
 ```shell
+mkdir -p ${PWD}/$TESTNET_NAME/nodes/besu0
 docker run \
   --name besu0 \
   -u $(id -u):$(id -g) --net host \
@@ -66,13 +67,14 @@ ethereum/client-go:latest
 Important: for custom testnets, you will need to init the data-dir before running the client, like below:
 
 ```shell
+mkdir -p ${PWD}/$TESTNET_NAME/nodes/geth0
 docker run \
   --name tmpgeth \
   --rm \
   -u $(id -u):$(id -g) --net host \
   -v ${PWD}/$TESTNET_NAME/public/eth1_config.json:/networkdata/eth1_config.json \
   -v ${PWD}/$TESTNET_NAME/nodes/geth0:/gethdata \
-  ethereum/client-go:latest
+  ethereum/client-go:latest \
   --catalyst \
   --datadir "/gethdata/chaindata" \
   init "/networkdata/eth1_config.json"
@@ -86,17 +88,17 @@ docker run \
   -u $(id -u):$(id -g) --net host \
   -v ${PWD}/$TESTNET_NAME/public/eth1_config.json:/networkdata/eth1_config.json \
   -v ${PWD}/$TESTNET_NAME/nodes/geth0:/gethdata \
-  ethereum/client-go:latest
-  --catalyst
-  --http --http.api net,eth,consensus
-  --http.port 8545
-  --http.addr 0.0.0.0
-  --http.corsdomain "*"
-  --ws --ws.api net,eth,consensus
-  --ws.port 8546
-  --ws.addr 0.0.0.0
-  --nodiscover
-  --miner.etherbase 0x1000000000000000000000000000000000000000
+  ethereum/client-go:latest \
+  --catalyst \
+  --http --http.api net,eth,consensus \
+  --http.port 8545 \
+  --http.addr 0.0.0.0 \
+  --http.corsdomain "*" \
+  --ws --ws.api net,eth,consensus \
+  --ws.port 8546 \
+  --ws.addr 0.0.0.0 \
+  --nodiscover \
+  --miner.etherbase 0x1000000000000000000000000000000000000000 \
   --datadir "/gethdata/chaindata"
 ```
 
@@ -152,6 +154,7 @@ mkalinin/teku:rayonism
 #### Running the beacon node:
 
 ```shell
+mkdir -p ${PWD}/$TESTNET_NAME/nodes/teku0bn
 docker run \
   --name teku0bn \
   -u $(id -u):$(id -g) --net host \
@@ -220,6 +223,7 @@ protolambda/lighthouse:rayonism
 #### Running the beacon node:
 
 ```shell
+mkdir -p ${PWD}/$TESTNET_NAME/nodes/lighthouse0bn
 docker run \
   --name lighthouse0bn \
   -u $(id -u):$(id -g) --net host \
@@ -294,6 +298,7 @@ gcr.io/prysmaticlabs/prysm/validator:merge-minimal
 #### Running the beacon node:
 
 ```shell
+mkdir -p ${PWD}/$TESTNET_NAME/nodes/prysm0bn
 docker run \
   --name prysm0bn \
   -u $(id -u):$(id -g) --net host \
@@ -369,6 +374,7 @@ Or compile them yourself with https://github.com/protolambda/nimbus-docker/ (not
 #### Running the beacon node:
 
 ```shell
+mkdir -p ${PWD}/$TESTNET_NAME/nodes/nimbus0bn
 docker run \
   --name nimbus0bn \
   -u $(id -u):$(id -g) --net host \

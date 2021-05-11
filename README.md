@@ -43,12 +43,15 @@ cd /mergenet-tutorial
 
 ## Create chain configurations
 
-Tweak `mergenet.yaml` as you like.
-
-Get current timestamp as eth1 genesis timestamp, then change the eth2-genesis delay to offset the chain start:
+Set `eth1_genesis_timestamp` inside `mergenet.yaml`to the current
+timestamp or a timestamp in the future. To use the current timestamp
+run:
 ```shell
-date +%s
+sed -i -e s/GENESIS_TIMESTAMP/$(date +%s)/ mergenet.yaml
 ```
+
+Otherwise tweak mergenet.yaml as you like. The current default is to
+have the Eth2 genesis 10 minutes after the Eth1 genesis.
 
 ```shell
 # Inside your setupenv: Generate ETH1/ETH2 configs
