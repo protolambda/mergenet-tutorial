@@ -193,7 +193,7 @@ docker run \
   -u $(id -u):$(id -g) --net host \
   -v ${PWD}/$TESTNET_NAME/nodes/teku0vc:/validatordata \
   -v ${PWD}/$TESTNET_NAME/public/eth2_config.yaml:/networkdata/eth2_config.yaml \
-  mkalinin/teku:rayonism \
+  mkalinin/teku:rayonism vc \
   --network "/networkdata/eth2_config.yaml" \
   --data-path "/validatordata" \
   --beacon-node-api-endpoint "http://localhost:4000" \
