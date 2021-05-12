@@ -1,16 +1,23 @@
 # Running nodes with Docker
 
-This doc guides you through running each client
-with custom testnet configuration for testing the Rayonism merge prototypes.
+This doc guides you through running each client with custom testnet
+configuration for testing the Rayonism merge prototypes.
 
 All of the instructions are very verbose about port configuration,
 so you can change the ports easily, and avoid port overlaps. 
 
-Each of the instructions assumes you want to mount 
-testnet configuration, a datadir for the node, maybe a genesis-state for beacon nodes, and maybe keys/secrets for validators.
+Each of the instructions assumes you want to mount testnet
+configuration, a datadir for the node, maybe a genesis-state for
+beacon nodes, and maybe keys/secrets for validators.
 
-It's recommended you create the data dirs on the host, so docker doesn't have to during the run, and permissions match the user-permissions in the container.
-Nethermind is an odd one here, running as non-root user is problematic.
+It's recommended you create the data dirs on the host, so docker
+doesn't have to during the run, and permissions match the
+user-permissions in the container. Nethermind is an odd one here,
+running as non-root user is problematic.
+
+Also most Docker images come in two flavors: "Minimal" to run a local
+testnet with a limit set of validators, and a "non-minimal" to join a
+larger network such a public devnet.
 
 ## Node discovery
 
