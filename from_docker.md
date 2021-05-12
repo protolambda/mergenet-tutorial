@@ -12,13 +12,21 @@ testnet configuration, a datadir for the node, maybe a genesis-state for beacon 
 It's recommended you create the data dirs on the host, so docker doesn't have to during the run, and permissions match the user-permissions in the container.
 Nethermind is an odd one here, running as non-root user is problematic.
 
-## Tooling
+## Node discovery
+
+Whether you are running a local multi-test net, or whether you are
+joining a public devnet, your fresh nodes need to know how to connect
+to other nodes. For the local testnet, you can use the following
+bootnode as single ENR for all nodes to connect to.
 
 [Docs](https://github.com/protolambda/eth2-bootnode)
 
 ```
 protolambda/eth2-bootnode:latest
 ```
+Run it and generate an ENR, that you put into
+bootnodes.txt. Alternatively obtain bootnodes.txt from the devnet
+GitHub repo and use that.
 
 ## Execution clients
 
@@ -155,6 +163,9 @@ mkalinin/teku:rayonism
 
 ```shell
 mkdir -p ${PWD}/$TESTNET_NAME/nodes/teku0bn
+
+COMMA_SEPERATED_ENRS=$(grep enr: bootnodes.txt | \
+  (read node; echo -n $node; while read node; do echo -n ,$node; done))
 docker run \
   --name teku0bn \
   -u $(id -u):$(id -g) --net host \
@@ -168,7 +179,7 @@ docker run \
   --logging=debug \
   --initial-state "/networkdata/genesis.ssz" \
   --eth1-endpoint "http://localhost:8545" \
-  --p2p-discovery-bootnodes "COMMA_SEPARATED_ENRS_HERE" \
+  --p2p-discovery-bootnodes "$COMMA_SEPARATED_ENRS" \
   --metrics-enabled=true --metrics-interface=0.0.0.0 --metrics-port="8000" \
   --p2p-discovery-enabled=true \
   --p2p-peer-lower-bound=1 \
@@ -224,6 +235,8 @@ protolambda/lighthouse:rayonism
 
 ```shell
 mkdir -p ${PWD}/$TESTNET_NAME/nodes/lighthouse0bn
+COMMA_SEPERATED_ENRS=$(grep enr: bootnodes.txt | \
+  (read node; echo -n $node; while read node; do echo -n ,$node; done))
 docker run \
   --name lighthouse0bn \
   -u $(id -u):$(id -g) --net host \
@@ -241,7 +254,7 @@ docker run \
   --enr-tcp-port=9000 --enr-udp-port=9000 \
   --port=9000 --discovery-port=9000 \
   --eth1 --eth1-endpoints "http://localhost:8545" \
-  --boot-nodes "COMMA_SEPARATED_ENRS_HERE" \
+  --boot-nodes "$COMMA_SEPARATED_ENRS" \
   --http \
   --http-address 0.0.0.0 \
   --http-port "4000" \
@@ -299,6 +312,8 @@ gcr.io/prysmaticlabs/prysm/validator:merge-minimal
 
 ```shell
 mkdir -p ${PWD}/$TESTNET_NAME/nodes/prysm0bn
+BOOTNODES=$(grep enr: bootnodes.txt | \
+  (while read node; do echo -n "--bootstrap-node=$node "; done))
 docker run \
   --name prysm0bn \
   -u $(id -u):$(id -g) --net host \
@@ -311,7 +326,6 @@ docker run \
   --min-sync-peers=0 \
   --contract-deployment-block 0 \
   --http-web3provider="http://localhost:8545" \
-  --bootstrap-node="REPEAT_THIS_FLAG_TO_ADD_EVERY_ENR" \
   --chain-config-file="/networkdata/eth2_config.yaml" \
   --genesis-state="/networkdata/genesis.ssz" \
   --verbosity=debug \
@@ -323,7 +337,8 @@ docker run \
   --grpc-gateway-port=4000 \
   --verbosity="debug" \
   --enable-debug-rpc-endpoints \
-  --min-sync-peers 1
+  --min-sync-peers=1 \
+  $(echo $BOOTNODES)
   # Optional:
   # --p2p-host-ip=1.2.3.4
 ```
@@ -375,6 +390,8 @@ Or compile them yourself with https://github.com/protolambda/nimbus-docker/ (not
 
 ```shell
 mkdir -p ${PWD}/$TESTNET_NAME/nodes/nimbus0bn
+BOOTNODES=$(grep enr: bootnodes.txt | \
+  (while read node; do echo --bootstrap-node=$node; done))
 docker run \
   --name nimbus0bn \
   -u $(id -u):$(id -g) --net host \
@@ -387,7 +404,6 @@ docker run \
   --max-peers="60" \
   --data-dir="/beacondata" \
   --web3-url="ws://localhost:8546" \
-  --bootstrap-node="REPEAT_THIS_FLAG_TO_ADD_EVERY_ENR" \
   --udp-port=9000 \
   --tcp-port=9000 \
   --listen-address=0.0.0.0 \
@@ -398,7 +414,8 @@ docker run \
   --rpc --rpc-port=4001 --rpc-address=0.0.0.0 \
   --rest --rest-port=4000 --rpc-address=0.0.0.0 \
   --metrics --metrics-port=8000 --metrics-address=0.0.0.0 \
-  --log-file="/dev/null"
+  --log-file="/dev/null" \
+  $(echo $BOOTNODES)
 # optional:
 # --nat="extip:1.2.3.4"
 ```
