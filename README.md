@@ -72,7 +72,7 @@ Make sure that total of `count` entries is more than the configured `MIN_GENESIS
 # Inside your setupenv: Generate Genesis Beacon State
 eth2-testnet-genesis merge \
   --eth1-config "$TESTNET_NAME/public/eth1_config.json" \
-  --eth2-config "$TESTNET_NAME/public/eth2_config.yaml" \
+  --config "$TESTNET_NAME/public/eth2_config.yaml" \
   --mnemonics genesis_validators.yaml \
   --state-output "$TESTNET_NAME/public/genesis.ssz" \
   --tranches-dir "$TESTNET_NAME/private/tranches"

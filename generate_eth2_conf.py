@@ -25,6 +25,7 @@ mainnet = {
     'INACTIVITY_PENALTY_QUOTIENT': 67108864,
     'MIN_SLASHING_PENALTY_QUOTIENT': 128,
     'PROPORTIONAL_SLASHING_MULTIPLIER': 1,
+    'CHURN_LIMIT_QUOTIENT' : 65536
 }
 
 minimal = {
@@ -44,46 +45,73 @@ minimal = {
     'INACTIVITY_PENALTY_QUOTIENT': 33554432,
     'MIN_SLASHING_PENALTY_QUOTIENT': 64,
     'PROPORTIONAL_SLASHING_MULTIPLIER': 2,
+    'CHURN_LIMIT_QUOTIENT' : 32
 }
 
 config = minimal if data['eth2_base_config'] == 'minimal' else mainnet
 
 print(f"""# Merge devnet preset
 
-# TODO some clients need either the mainnet/minimal name for base config values (Lighthouse/Nimbus?)
-CONFIG_NAME: "{config['CONFIG_NAME']}"
+# Extends the minimal preset
+PRESET_BASE: "{config['CONFIG_NAME']}"
 
-# Misc
+# Genesis
 # ---------------------------------------------------------------
-MAX_COMMITTEES_PER_SLOT: {config['MAX_COMMITTEES_PER_SLOT']}
-TARGET_COMMITTEE_SIZE: {config['TARGET_COMMITTEE_SIZE']}
-MAX_VALIDATORS_PER_COMMITTEE: 2048
-MIN_PER_EPOCH_CHURN_LIMIT: 4
-CHURN_LIMIT_QUOTIENT: 65536
-SHUFFLE_ROUND_COUNT: {config['SHUFFLE_ROUND_COUNT']}
-MIN_GENESIS_ACTIVE_VALIDATOR_COUNT: {config['MIN_GENESIS_ACTIVE_VALIDATOR_COUNT']}
-# left unmodified, eth1 timestamp is used instead, modify genesis-delay for eth2
+# [customized]
+MIN_GENESIS_ACTIVE_VALIDATOR_COUNT: 64
+# Jan 3, 2020
 MIN_GENESIS_TIME: 1606824000
+# Highest byte set to 0x01 to avoid collisions with mainnet versioning
+GENESIS_FORK_VERSION: {data['eth2_fork_version']}
+# [customized] Faster to spin up testnets, but does not give validator reasonable warning time for genesis
+GENESIS_DELAY: {data['eth2_genesis_delay']}
 
-HYSTERESIS_QUOTIENT: 4
-HYSTERESIS_DOWNWARD_MULTIPLIER: 1
-HYSTERESIS_UPWARD_MULTIPLIER: 5
 
-
-# Fork Choice
+# Forking
 # ---------------------------------------------------------------
-SAFE_SLOTS_TO_UPDATE_JUSTIFIED: 8
+# Values provided for illustrative purposes.
+# Individual tests/testnets may set different values.
+
+# Altair
+ALTAIR_FORK_VERSION: 0x01000001
+ALTAIR_FORK_EPOCH: 0
+# Merge
+MERGE_FORK_VERSION: 0x02000001
+MERGE_FORK_EPOCH: 0
+# Sharding
+SHARDING_FORK_VERSION: 0x03000001
+SHARDING_FORK_EPOCH: 18446744073709551615
+
+# TBD, 2**32 is a placeholder. Merge transition approach is in active R&D.
+MIN_ANCHOR_POW_BLOCK_DIFFICULTY: 4294967296
 
 
-# Validator
+# Time parameters
 # ---------------------------------------------------------------
-ETH1_FOLLOW_DISTANCE: {config['ETH1_FOLLOW_DISTANCE']}
-TARGET_AGGREGATORS_PER_COMMITTEE: 16
-RANDOM_SUBNETS_PER_VALIDATOR: 1
-EPOCHS_PER_RANDOM_SUBNET_SUBSCRIPTION: 256
-# set equal to SECONDS_PER_SLOT for merge-net
+# [customized] Faster for testing purposes
+SECONDS_PER_SLOT: {config['SECONDS_PER_SLOT']}
+# 14 (estimate from Eth1 mainnet)
 SECONDS_PER_ETH1_BLOCK: {config['SECONDS_PER_SLOT']}
+# 2**8 (= 256) epochs
+MIN_VALIDATOR_WITHDRAWABILITY_DELAY: 256
+# [customized] higher frequency of committee turnover and faster time to acceptable voluntary exit
+SHARD_COMMITTEE_PERIOD: {config['SHARD_COMMITTEE_PERIOD']}
+# [customized] process deposits more quickly, but insecure
+ETH1_FOLLOW_DISTANCE: {config['ETH1_FOLLOW_DISTANCE']}
 
+
+# Validator cycle
+# ---------------------------------------------------------------
+# 2**2 (= 4)
+INACTIVITY_SCORE_BIAS: 4
+# 2**4 (= 16)
+INACTIVITY_SCORE_RECOVERY_RATE: 16
+# 2**4 * 10**9 (= 16,000,000,000) Gwei
+EJECTION_BALANCE: 16000000000
+# 2**2 (= 4)
+MIN_PER_EPOCH_CHURN_LIMIT: 4
+# [customized] scale queue churn at much lower validator counts for testing
+CHURN_LIMIT_QUOTIENT: {config['CHURN_LIMIT_QUOTIENT']}
 
 # Deposit contract
 # ---------------------------------------------------------------
@@ -92,84 +120,4 @@ DEPOSIT_CHAIN_ID: {data['chain_id']}
 DEPOSIT_NETWORK_ID: {data['chain_id']}
 # Allocated in Execution-layer genesis
 DEPOSIT_CONTRACT_ADDRESS: {data['deposit_contract_address']}
-
-
-# Gwei values
-# ---------------------------------------------------------------
-MIN_DEPOSIT_AMOUNT: 1000000000
-MAX_EFFECTIVE_BALANCE: 32000000000
-EJECTION_BALANCE: 16000000000
-EFFECTIVE_BALANCE_INCREMENT: 1000000000
-
-
-# Initial values
-# ---------------------------------------------------------------
-GENESIS_FORK_VERSION: {data['eth2_fork_version']}
-
-BLS_WITHDRAWAL_PREFIX: 0x00
-
-
-# Time parameters
-# ---------------------------------------------------------------
-GENESIS_DELAY: {data['eth2_genesis_delay']}
-SECONDS_PER_SLOT: {config['SECONDS_PER_SLOT']}
-MIN_ATTESTATION_INCLUSION_DELAY: 1
-SLOTS_PER_EPOCH: {config['SLOTS_PER_EPOCH']}
-MIN_SEED_LOOKAHEAD: 1
-MAX_SEED_LOOKAHEAD: 4
-EPOCHS_PER_ETH1_VOTING_PERIOD: {config['EPOCHS_PER_ETH1_VOTING_PERIOD']}
-SLOTS_PER_HISTORICAL_ROOT: {config['SLOTS_PER_HISTORICAL_ROOT']}
-MIN_VALIDATOR_WITHDRAWABILITY_DELAY: 256
-SHARD_COMMITTEE_PERIOD: {config['SHARD_COMMITTEE_PERIOD']}
-MIN_EPOCHS_TO_INACTIVITY_PENALTY: 4
-
-
-# State vector lengths
-# ---------------------------------------------------------------
-EPOCHS_PER_HISTORICAL_VECTOR: {config['EPOCHS_PER_HISTORICAL_VECTOR']}
-EPOCHS_PER_SLASHINGS_VECTOR: {config['EPOCHS_PER_SLASHINGS_VECTOR']}
-HISTORICAL_ROOTS_LIMIT: 16777216
-VALIDATOR_REGISTRY_LIMIT: 1099511627776
-
-
-# Reward and penalty quotients
-# ---------------------------------------------------------------
-BASE_REWARD_FACTOR: 64
-WHISTLEBLOWER_REWARD_QUOTIENT: 512
-PROPOSER_REWARD_QUOTIENT: 8
-INACTIVITY_PENALTY_QUOTIENT: {config['INACTIVITY_PENALTY_QUOTIENT']}
-MIN_SLASHING_PENALTY_QUOTIENT: {config['MIN_SLASHING_PENALTY_QUOTIENT']}
-PROPORTIONAL_SLASHING_MULTIPLIER: {config['PROPORTIONAL_SLASHING_MULTIPLIER']}
-
-
-# Max operations per block
-# ---------------------------------------------------------------
-MAX_PROPOSER_SLASHINGS: 16
-MAX_ATTESTER_SLASHINGS: 2
-MAX_ATTESTATIONS: 128
-MAX_DEPOSITS: 16
-MAX_VOLUNTARY_EXITS: 16
-
-
-# Signature domains
-# ---------------------------------------------------------------
-DOMAIN_BEACON_PROPOSER: 0x00000000
-DOMAIN_BEACON_ATTESTER: 0x01000000
-DOMAIN_RANDAO: 0x02000000
-DOMAIN_DEPOSIT: 0x03000000
-DOMAIN_VOLUNTARY_EXIT: 0x04000000
-DOMAIN_SELECTION_PROOF: 0x05000000
-DOMAIN_AGGREGATE_AND_PROOF: 0x06000000
-
-
-# Merge
-# ---------------------------------------------------------------
-# Same fork version as genesis, since there is no actual fork
-MERGE_FORK_VERSION: {data['eth2_fork_version']}
-# Merge active from genesis
-MERGE_FORK_SLOT: 0
-
-# Transition
-# ---------------------------------------------------------------
-TRANSITION_TOTAL_DIFFICULTY: 0
 """)
