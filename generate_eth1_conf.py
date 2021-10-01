@@ -81,7 +81,8 @@ out = {
     "nonce": "0x1234",
     "mixhash": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-    "timestamp": str(data['eth1_genesis_timestamp'])
+    "timestamp": str(data['eth1_genesis_timestamp']),
+    "baseFeePerGas": "0x7"
 }
 
 for key, value in data['eth1_premine'].items():

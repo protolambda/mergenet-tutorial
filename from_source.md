@@ -182,7 +182,7 @@ Or run the created docker image.
 
 Checkout lighthouse rayonism, then run the make script:
 ```shell
-git clone -b rayonism git@github.com:sigp/lighthouse.git
+git clone -b merge-f2f git@github.com:sigp/lighthouse.git
 cd lighthouse
 
 make install
