@@ -75,7 +75,7 @@ Get the tools
 
 ```shell
 export VALIDATOR_NODE_NAME="valclient0"
-bash ./generate_eth2_data.sh
+bash ./generate_eth2_validator_data.sh
 ```
 
 ## Start nodes

@@ -359,17 +359,11 @@ Note: different docker images for different configs. Loading custom testnet conf
 
 [Docs](https://nimbus.guide/docker.html)
 
-Nimbus has an official docker repo, but no rayonism image or docker support for separate validator client (as far Proto knows).
-```
-statusteam/nimbus_beacon_node
-```
+Note: merge/rayonism is not supported on the main branch/images yet. Use below image, from the Nimbus team:
 
-You can try these images by proto instead, containing `beacon_node` and `validator_client` binaries:
 ```
-protolambda/nimbus:rayonism
-protolambda/nimbus:rayonism-minimal
+statusteam/nimbus_beacon_node:amd64-amphora
 ```
-Or compile them yourself with https://github.com/protolambda/nimbus-docker/ (note: you need to add `-d:disableMarchNative` to NIMFLAGS to make your docker image portable)
 
 #### Running the beacon node:
 
@@ -381,24 +375,25 @@ docker run \
   -v ${PWD}/$TESTNET_NAME/nodes/nimbus0bn:/beacondata \
   -v ${PWD}/$TESTNET_NAME/public/eth2_config.yaml:/networkdata/eth2_config.yaml \
   -v ${PWD}/$TESTNET_NAME/public/genesis.ssz:/networkdata/genesis.ssz \
-  protolambda/nimbus:rayonism-minimal \
-  beacon_node \
-  --network=TODO \
-  --max-peers="60" \
-  --data-dir="/beacondata" \
-  --web3-url="ws://localhost:8546" \
-  --bootstrap-node="REPEAT_THIS_FLAG_TO_ADD_EVERY_ENR" \
-  --udp-port=9000 \
-  --tcp-port=9000 \
-  --listen-address=0.0.0.0 \
-  --graffiti="hello" \
-  --enr-auto-update=false \
-  --log-level="debug" \
-  --log-file="/dev/null" \
-  --rpc --rpc-port=4001 --rpc-address=0.0.0.0 \
-  --rest --rest-port=4000 --rpc-address=0.0.0.0 \
-  --metrics --metrics-port=8000 --metrics-address=0.0.0.0 \
-  --log-file="/dev/null"
+  statusteam/nimbus_beacon_node:amd64-amphora \
+    --network=TODO \
+    --max-peers="60" \
+    --data-dir="/beacondata" \
+    --validators-dir="/validatordata/keys" \
+    --secrets-dir="/validatordata/secrets"
+    --web3-url="ws://localhost:8546" \
+    --bootstrap-node="REPEAT_THIS_FLAG_TO_ADD_EVERY_ENR" \
+    --udp-port=9000 \
+    --tcp-port=9000 \
+    --listen-address=0.0.0.0 \
+    --graffiti="hello" \
+    --enr-auto-update=false \
+    --log-level="debug" \
+    --log-file="/dev/null" \
+    --rpc --rpc-port=4001 --rpc-address=0.0.0.0 \
+    --rest --rest-port=4000 --rpc-address=0.0.0.0 \
+    --metrics --metrics-port=8000 --metrics-address=0.0.0.0 \
+    --log-file="/dev/null"
 # optional:
 # --nat="extip:1.2.3.4"
 ```
@@ -409,36 +404,9 @@ May require custom docker image.
 Note: websocket eth1 connections only.
 - `ws://127.0.0.1:8546` for geth
 - `ws://127.0.0.1:8546/ws` for besu
-- `http://127.0.0.1:8546` (upgrades to websocket) for nethermind
+- `ws://127.0.0.1:8546` (for nethermind)
 
 #### Running the validator:
 
-Note: nimbus validators fetch the spec config from the beacon node
-
-```shell
-# prepare keys
-NODE_PATH="$TESTNET_PATH/nodes/nimbus0vc"
-mkdir -p "$NODE_PATH"
-cp -r "$TESTNET_PATH/private/validator0/nimbus-keys" "$NODE_PATH/keys"
-cp -r "$TESTNET_PATH/private/validator0/secrets" "$NODE_PATH/secrets"
-
-docker run \
-  --name nimbus0vc \
-  -u $(id -u):$(id -g) --net host \
-  -v ${PWD}/$TESTNET_NAME/nodes/nimbus0vc:/validatordata \
-  -v ${PWD}/$TESTNET_NAME/public/eth2_config.yaml:/networkdata/eth2_config.yaml \
-  protolambda/nimbus:rayonism-minimal \
-  validator_client \
-  --log-level="debug" \
-  --log-file="/dev/null" \
-  --data-dir="/validatordata" \
-  --non-interactive=true \
-  --graffiti="hello" \
-  --rpc-port=4001 \
-  --rpc-address=127.0.0.1 \
-  --validators-dir="/validatordata/keys" \
-  --secrets-dir="/validatordata/secrets"
-```
-
-Note: Nimbus exposes both a JSON-RPC and REST-API endpoint.
-The validator client still uses JSON-RPC, although the standard is REST-API.
+Since validators are attached directly to the beacon node, running a validator client
+is not necessary.

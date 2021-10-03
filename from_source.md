@@ -198,3 +198,29 @@ make install
 ```shell
 ./target/release/lighthouse --options-here
 ```
+
+----
+
+## Nimbus
+
+### Prerequisites
+
+https://nimbus.guide/install.html
+
+### Build
+
+```shell
+git clone -b amphora-merge-interop git@github.com:status-im/nimbus-eth2
+cd nimbus-eth2
+```
+
+```shell
+make update
+make nimbus_beacon_node
+```
+
+### Run
+
+```shell
+./build/nimbus_beacon_chain --options-here
+```
