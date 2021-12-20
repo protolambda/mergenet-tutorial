@@ -552,57 +552,6 @@ if [ $NIMBUS_ENABLED != 0 ]; then  # TODO enable nimbus
     --secrets-dir="/validatordata/secrets"
 fi
 
-echo "Setting up fork monitor"
-
-# Fork monitor setup
-SLOTS_PER_EPOCH=32
-SECONDS_PER_SLOT=12
-ETH2_MIN_GENESIS_ACTIVE_VALIDATOR_COUNT=16384
-if [ "$ETH2_SPEC_VARIANT" == "minimal" ]; then
-  SLOTS_PER_EPOCH=8
-  SECONDS_PER_SLOT=6
-  ETH2_MIN_GENESIS_ACTIVE_VALIDATOR_COUNT=64
-fi
-
-NODE_NAME=forkmon0
-NODE_PATH="$TESTNET_PATH/nodes/$NODE_NAME"
-mkdir -p "$NODE_PATH"
-cat > "$NODE_PATH/config.yaml"  << EOT
-# disabled
-weak_subjectivity_provider_endpoint: ""
-# disabled
-etherscan_api_key: ""
-http_timeout_milliseconds: 2000
-endpoints:
-  # Prysm
-  - addr: http://127.0.0.1:4000
-    eth1: Geth
-  # Teku
-  - addr: http://127.0.0.1:4001
-    eth1: Nethermind
-  # Lighthouse
-  - addr: http://127.0.0.1:4002
-    eth1: Besu
-# Dir for web assets
-outputDir: /public
-eth2:
-  seconds_per_slot: ${SECONDS_PER_SLOT}
-  genesis_time: ${ETH2_GENESIS_TIMESTAMP}
-  slots_per_epoch: ${SLOTS_PER_EPOCH}
-  network: Local
-EOT
-
-docker run \
-  --name $NODE_NAME \
-  --net host \
-  -u $(id -u):$(id -g) \
-  -v "$NODE_PATH:/data" \
-  -itd $FORKMON_IMAGE \
-  -config-file=/data/config.yaml
-
-echo "fork monitor running at: http://127.0.0.1:8080/"
-
-
 echo "Setting up postgres database for explorer"
 NODE_NAME=postgres0
 NODE_PATH="$TESTNET_PATH/nodes/$NODE_NAME"
@@ -631,6 +580,16 @@ docker run -it --rm \
   -it $POSTGRES_IMAGE \
   psql -f /src/tables.sql -d db -h 0.0.0.0 -p 5432 -U postgres
 
+
+# Set up eth2 config for fork monitor and explorer
+SLOTS_PER_EPOCH=32
+SECONDS_PER_SLOT=12
+ETH2_MIN_GENESIS_ACTIVE_VALIDATOR_COUNT=16384
+if [ "$ETH2_SPEC_VARIANT" == "minimal" ]; then
+  SLOTS_PER_EPOCH=8
+  SECONDS_PER_SLOT=6
+  ETH2_MIN_GENESIS_ACTIVE_VALIDATOR_COUNT=64
+fi
 
 echo "Setting up explorer"
 
@@ -720,3 +679,56 @@ docker run \
   -v "$TESTNET_PATH/public/eth2_config.yaml:/networkdata/eth2_config.yaml" \
   -itd $EXPLORER_IMAGE \
   ./explorer --config /config.yaml
+
+# Fork monitor setup
+echo "Setting up fork monitor"
+
+# wait to connect to TEKU
+echo "wait to connect to TEKU"
+
+TIME_NOW=$(date +%s)
+SLEEP_TIME_FOR_TEKU=$((ETH2_GENESIS_TIMESTAMP-TIME_NOW))
+
+echo "GENESIS_TIME: $ETH2_GENESIS_TIMESTAMP"
+echo "TIME_NOW: $TIME_NOW"
+echo "SLEEP_TIME_FOR_TEKU: $SLEEP_TIME_FOR_TEKU"
+
+sleep $SLEEP_TIME_FOR_TEKU
+
+NODE_NAME=forkmon0
+NODE_PATH="$TESTNET_PATH/nodes/$NODE_NAME"
+mkdir -p "$NODE_PATH"
+cat > "$NODE_PATH/config.yaml"  << EOT
+# disabled
+weak_subjectivity_provider_endpoint: ""
+# disabled
+etherscan_api_key: ""
+http_timeout_milliseconds: 2000
+endpoints:
+  # Prysm
+  - addr: http://127.0.0.1:4000
+    eth1: Geth
+  # Teku
+  - addr: http://127.0.0.1:4001
+    eth1: Nethermind
+  # Lighthouse
+  - addr: http://127.0.0.1:4002
+    eth1: Besu
+# Dir for web assets
+outputDir: /public
+eth2:
+  seconds_per_slot: ${SECONDS_PER_SLOT}
+  genesis_time: ${ETH2_GENESIS_TIMESTAMP}
+  slots_per_epoch: ${SLOTS_PER_EPOCH}
+  network: Local
+EOT
+
+docker run \
+  --name $NODE_NAME \
+  --net host \
+  -u $(id -u):$(id -g) \
+  -v "$NODE_PATH:/data" \
+  -itd $FORKMON_IMAGE \
+  -config-file=/data/config.yaml
+
+echo "fork monitor running at: http://127.0.0.1:8080/"
