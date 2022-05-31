@@ -1,3 +1,7 @@
+# DEPRECATED
+
+Warning: this repository is outdated. Please refer to the official documentation of each of the ethereum clients to join a testnet.
+
 # Mergenet tutorial
 
 Let's set up a local eth1-eth2 merge testnet!
